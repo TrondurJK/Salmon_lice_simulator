@@ -116,7 +116,7 @@ class Lice_agent_f:
 
     def TreatmentX(self):
         if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult','Adult_gravid']:
-            self.count = self.count * 0.30
+            self.count = self.count * 0.20
 
     def Slice(self, treat_eff):
         if self.get_stage() in ['Ch1']:

@@ -16,7 +16,7 @@ class Farm:
                  prod_len=420_000, fallow=10000, prod_cyc = 0, treatments=None,
                  treatment_type = None, NumTreat=0, treat_eff=np.array([[]]),
                  weight = 0.2, lusateljingar=[], fish_count_history = None,temperature=None,
-                 temperature_Average=None,wrasse_data =None,biomass_data =None,initial_start=None,
+                 temperature_Average=None,wrasse_data =None,biomass_data =None,initial_start=0,
                  cleanEff =None,lice_mortality=None,surface_ratio_switch=None):
         '''
         :params:
@@ -67,6 +67,11 @@ class Farm:
         self.treatment_type = treatment_type
         self.treat_eff = treat_eff
         self.num_treat_tjek = np.alen(treatments)-1
+        dofy = np.arange(0, 366)
+        diff_treat = np.append(dofy[0:int(len(dofy)/2)]*0+20,dofy[int(len(dofy)/2):]*0+80)
+        self.diff_treatment = [dofy,diff_treat]
+        self.num_of_treatments = 0
+
         self.prod_len_tjek = len(self.prod_len)
         self.weight = weight
         self.W0 = 7 # maximum kg av laksinum
@@ -135,9 +140,9 @@ class Farm:
         #print(self.temp)
         #print(self.temp)
         #if self.temp==0:
-        #    time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
-        #    dayofyear = time_new.dayofyear
-        #    self.temp=self.Temp_update_average(dayofyear)
+        time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
+        dayofyear = time_new.dayofyear
+        #  self.temp=self.Temp_update_average(dayofyear)
         #print(self.fish_count)
 
 
@@ -175,7 +180,7 @@ class Farm:
                 self.cleaner_fish += self.cleaner_F_update(self.time)
                 #print(self.cleaner_fish)
                 #print(self.name,self.time)
-                self.cleaner_fish += -self.cleaner_fish*self.delta_time*0
+                self.cleaner_fish += -self.cleaner_fish*self.delta_time*0.005
 
                 self.cleaner_death = self.cleaner_fish * self.cleanEff *self.delta_time  # how many lice do cleaner fish eat in one delta time step (0.05 per day)
                 #print(self.cleaner_fish,self.cleaner_death,self.time,self.cleanEff)
@@ -231,7 +236,8 @@ class Farm:
                 self.lice_f = []
                 self.lice_m = []
                 self.plankton = Planktonic_agent(0, self.delta_time)
-                self.adultlice = Lice_agent_f(self.time, 0, 1000,self.lice_mortality)
+                self.adultlice_f = Lice_agent_f(self.time, 0, 1000,self.lice_mortality)
+                self.adultlice_m = Lice_agent_m(self.time, 0, 1000, self.lice_mortality)
                 self.prod_time = -self.fallow[self.prod_cyc]
                 self.prod_cyc += 1
                 self.cleaner_fish =0
@@ -265,8 +271,11 @@ class Farm:
         if self.fish_count!=0:
             #print(self.name,self.get_fordeiling(calculate=True)[4],self.time)
             #print(np.sum([self.get_fordeiling(calculate=True)[4], self.get_fordeiling(calculate=True)[5]]))
-            if np.sum([self.get_fordeiling(calculate=True)[4],self.get_fordeiling(calculate=True)[5]]) / self.fish_count > 60:
+            # dayofyear
+            relevant_treatment = self.diff_treatment[1][self.diff_treatment[0]==dayofyear]
+            if np.sum([self.get_fordeiling(calculate=True)[4:6]]) / self.fish_count > relevant_treatment: # OOurt ther sum sigur nær tað er hvat í løbi av árinum
                 self.avlusing('TreatmentX', 1, 1, self.temp)
+                self.num_of_treatments += 1
 
         if self.prod_time<0:
             #print(self.time, 'Fasle',self.get_fordeiling())

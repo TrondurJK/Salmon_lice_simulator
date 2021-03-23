@@ -8,7 +8,7 @@ class System:
     '''
     Class of whole system
     '''
-    def __init__(self, farms, c_matrix,delta_time,temperature_input =None,inital_start=None):
+    def __init__(self, farms, c_matrix,delta_time,temperature_input =None,inital_start=0):
         '''
         :params:
         farms               Ein listi av farms sum eru í systeminum
@@ -67,16 +67,24 @@ class System:
             #delay = self.c_matrix[farm_nr, :, dayofyear - 1,:]
 
             if np.isnan(farm.get_fordeiling()[4]) or farm.fish_count == 0:
-                smitta_count = np.zeros((40,len(self.farms)))
+                smitta_count = np.zeros((40))
             else:
-                smitta_count=farm.plankton.update(farm,temp)
+                smitta_count = farm.plankton.update(farm, temp)
 
             farm_nr +=1
             smittarar.append(smitta_count)
-
+        #test = np.ones((4, 40))
         attached_list =[]
         for i in range(0,len(self.farms)):
-            attached_list.append(np.sum(np.dot(self.c_matrix[:, :, dayofyear - 1,:][:,i], smittarar[i])))
+            a = self.c_matrix[:, i, dayofyear - 1, :]
+            b = np.array(smittarar)
+            #print(a)
+            #print(b)
+            attached_list.append(np.sum(a*b))
 
+            # frá farm, til farm, dagar síðani sim byrjaði, delay
+
+
+        #print(attached_list)
         for farm, attached in zip(self.farms, attached_list):
            farm.update(attached)
