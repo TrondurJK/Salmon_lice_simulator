@@ -8,7 +8,8 @@ class System:
     '''
     Class of whole system
     '''
-    def __init__(self, farms, c_matrix,delta_time,temperature_input =None,inital_start=0):
+    def __init__(self, farms, c_matrix,delta_time,temperature_input=None,
+                 temperature_Average=None, inital_start=0):
         '''
         :params:
         farms               Ein listi av farms sum eru í systeminum
@@ -18,6 +19,7 @@ class System:
         '''
         #  TODO deltatime burda verði ein partur av hesum classanum
         self.delta_time =delta_time
+        # TODO Raise Exception um inital_start ikki er definera ordiligt
         self.initial_start = inital_start
         self.farms = farms
         self.c_matrix = np.array(c_matrix)
@@ -32,12 +34,22 @@ class System:
 #            assert len(self.farms) == shape[0]
 
 
+        # TODO raise an Exception um temperature_input ikki er definera
         self.Temp_update = interp1d(
             x = temperature_input[0], # remember which is which this should be date of fish
             y = temperature_input[1], # remember which is which this should be number of fish
             bounds_error = False,
             fill_value = 0
         )
+        if temperature_Average is not None:
+            self.Temp_update_average = interp1d(
+                x = temperature_Average.day_of_year.values, # remember which is which this should be date of fish
+                y = temperature_Average.Temp.values, # remember which is which this should be number of fish
+                bounds_error = False,
+                fill_value = 0
+            )
+        else:
+            self.Temp_update_average = None
         self.pop = [[] for _ in farms] #  populatión á planktonisku verðinum
 
     def update(self, time):
@@ -57,6 +69,10 @@ class System:
         dayofyear = time_doy.dayofyear
         #print(self.farms.name)
         temp = self.Temp_update(time-self.initial_start)
+        if temp==0 and self.Temp_update_average is not None:
+            #time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
+            #dayofyear = time_new.dayofyear
+            temp=self.Temp_update_average(dayofyear)
         #print(time,temp)
         #temp = self.Temp_update_average(dayofyear)
         farm_nr = 0
@@ -73,7 +89,7 @@ class System:
 
             farm_nr +=1
             smittarar.append(smitta_count)
-        #test = np.ones((4, 40))
+
         attached_list =[]
         for i in range(0,len(self.farms)):
             a = self.c_matrix[:, i, dayofyear - 1, :]
@@ -85,6 +101,5 @@ class System:
             # frá farm, til farm, dagar síðani sim byrjaði, delay
 
 
-        #print(attached_list)
         for farm, attached in zip(self.farms, attached_list):
            farm.update(attached)

@@ -37,7 +37,7 @@ Treatment_array[3] = Treatment_array[2]*0+0.95
 treatment_type =[['any'],['any'],['any'],['FoodTreatment:']]#[['any'],['any'],['FoodTreatment:'],['any']]
 
 #======= initiate farm class =============
-wrasse_data =[[0],[0]],[[0],[0]],[[0],[0]],[[0],[0]] # [[0],[0]],[[0],[0]],[[0],[0]],[[100,200 ],[50_000,50_000]]
+wrasse_data =[[0, 0],[0, 0]],[[0, 0],[0, 0]],[[0, 0],[0, 0]],[[0, 0],[0, 0]] # [[0],[0]],[[0],[0]],[[0],[0]],[[100,200 ],[50_000,50_000]]
 
 #============== temperature ==================
 date = np.arange(0, stop_time)
@@ -60,9 +60,9 @@ Farm(0,delta_time,1_000_000,
      treat_eff=np.array(Treatment_array[index]),
      fish_count_history = [np.arange(0,500), np.arange(0,500)*0+500_000],   # date, number of fish here set to 500_000 fish
      temperature = temperature,
-     wrasse_data = np.array(wrasse_data[index]),
+     CF_data = np.array(wrasse_data[index]),
      biomass_data = [[0,stop_time],np.array([1,1])],
-     #initial_start=None,
+     initial_start=inital_start,
      cleanEff =0.3,
      lice_mortality=[0.01,0.01,0.02,0.02,0.02,0.02],
      surface_ratio_switch=0
