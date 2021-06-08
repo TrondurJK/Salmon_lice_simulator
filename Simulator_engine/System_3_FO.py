@@ -55,9 +55,11 @@ class System:
         else:
             self.Temp_update_average = None
 
-        self.Temp_update = self.Temp_update or self.Temp_update_average
-        if self.Temp_update is None:
+        if self.Temp_update is None and self.Temp_update_average is None:
             raise ValueError('her er eingin tempraturur')
+        if self.Temp_update is None:
+            #TODO Hettar burdi ikki staði soleisis plz fixa meg
+            self.Temp_update = lambda x: 0
 
         self.pop = [[] for _ in farms] #  populatión á planktonisku verðinum
 
@@ -78,11 +80,13 @@ class System:
         dayofyear = time_doy.dayofyear
         #print(self.farms.name)
         temp = self.Temp_update(time-self.initial_start)
-        if temp==0 and self.Temp_update_average is not None:
+        if temp == 0 and self.Temp_update_average is not None:
             #time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
             #dayofyear = time_new.dayofyear
-            temp=self.Temp_update_average(dayofyear)
+            temp = self.Temp_update_average(dayofyear)
         #print(time,temp)
+        #with open('temp1', 'a+') as f:
+        #    f.write(f'{time},{temp},{dayofyear}\n')
         #temp = self.Temp_update_average(dayofyear)
         farm_nr = 0
         for farm in self.farms:
