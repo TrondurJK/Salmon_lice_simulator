@@ -130,6 +130,7 @@ plt.show()
 
 
 
+fig, ax = plt.subplots(2, 2)
 ax[0,1].plot(x,y_Ch_farm[1],'g-',linewidth = 3)
 ax[0,1].plot(x,y_PA_farm[1],'y-',linewidth = 3)
 ax[0,1].plot(x,y_AF_farm[1],'r-',linewidth = 3)
