@@ -35,12 +35,16 @@ class System:
 
 
         # TODO raise an Exception um temperature_input ikki er definera
-        self.Temp_update = interp1d(
-            x = temperature_input[0], # remember which is which this should be date of fish
-            y = temperature_input[1], # remember which is which this should be number of fish
-            bounds_error = False,
-            fill_value = 0
-        )
+        if temperature_input is not None:
+            self.Temp_update = interp1d(
+                x = temperature_input[0], # remember which is which this should be date of fish
+                y = temperature_input[1], # remember which is which this should be number of fish
+                bounds_error = False,
+                fill_value = 0
+            )
+        else:
+            self.Temp_update = None
+
         if temperature_Average is not None:
             self.Temp_update_average = interp1d(
                 x = temperature_Average.day_of_year.values, # remember which is which this should be date of fish
@@ -50,6 +54,11 @@ class System:
             )
         else:
             self.Temp_update_average = None
+
+        self.Temp_update = self.Temp_update or self.Temp_update_average
+        if self.Temp_update is None:
+            raise ValueError('her er eingin tempraturur')
+
         self.pop = [[] for _ in farms] #  populatión á planktonisku verðinum
 
     def update(self, time):
