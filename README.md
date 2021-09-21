@@ -34,7 +34,7 @@ A description of the model structure is shown below.
 
 
 ## Status
-Project is: _in progress_, _finished_ ?
+Project is: _in progress_
 
 ## Inspiration
 Add here credits. Project inspired by..., based on...
@@ -45,4 +45,4 @@ MIT License
 Copyright (c) 2020 TrondurJK
 
 ## Contact
-Created by [@TKfucker](https://github.com/TrondurJK) - onkur heimasíða - feel free to contact me!	
+Created by [trondkraga@gmail.com](https://github.com/TrondurJK) - onkur heimasíða - feel free to contact me!	
