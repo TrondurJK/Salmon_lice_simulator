@@ -20,7 +20,7 @@ Managing salmon louse _Lepeophtheirus salmonis_ outbreaks is a crucial part of s
 	
 ## Technologies
 The project is created with:
-* Python version 3.7?
+* Python version 3.7 or newer.
 	
 ## Setup
 To run this project, you need to install Python. Python can be downloaded [here](https://www.python.org/downloads/).
@@ -37,7 +37,7 @@ A description of the model structure is shown below.
 Project is: _in progress_
 
 ## Inspiration
-Add here credits. Project inspired by..., based on...
+Tróndur T. Johannesen, Tórstein Balle and more. Project inspired by Revie et al. (2005), Stien et al., (2005), Adams et al., (2015) and more. Development parameters based on Hamre et al., (2019).
 
 ## License
 MIT License
