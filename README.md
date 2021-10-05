@@ -37,7 +37,7 @@ A description of the model structure is shown below.
 Project is: _in progress_
 
 ## Inspiration
-Tróndur T. Johannesen, Tórstein Balle and more. Project inspired by Revie et al. (2005), Stien et al., (2005), Adams et al., (2015) and more. Development parameters based on Hamre et al., (2019).
+Tróndur T. Johannesen, Torstein Balle and more. Project inspired by Revie et al. (2005), Stien et al., (2005), Adams et al., (2015) and more. Development parameters based on Hamre et al., (2019).
 
 ## License
 MIT License
