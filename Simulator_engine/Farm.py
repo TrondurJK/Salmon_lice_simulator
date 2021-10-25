@@ -18,7 +18,7 @@ class Farm:
                  treatment_type = None, NumTreat=0, treat_eff=np.array([[]]),
                  weight = 0.2, lusateljingar=[], fish_count_history = None,temperature=None,
                  temperature_Average=None,CF_data =None,biomass_data =None,initial_start=None,
-                 cleanEff =None,lice_mortality=None,surface_ratio_switch=None,
+                 cleanEff =None,lice_mortality=None,surface_ratio_switch=False,
                  use_cleaner_F_update=False, seasonal_treatment_treashold=False):
         '''
         :params:
@@ -40,7 +40,6 @@ class Farm:
 
 
         self.delta_time = delta_time
-        #self.temperature = temperature
         self.fish_count = fish_count
         self.fish_count_history = fish_count_history
         self.lice_f = {
@@ -112,41 +111,46 @@ class Farm:
             bounds_error = False,
             fill_value = 0
         )
-        self.Temp_update = interp1d(
-            x = temperature[0], # remember which is which this should be date of fish
-            y = temperature[1], # remember which is which this should be number of fish
-            bounds_error = False,
-            fill_value = 0
-        )
-        if temperature_Average is not None:
+
+        if temperature_Average is None:
+            self.Temp_update = interp1d(
+                x = temperature[0], # remember which is which this should be date of fish
+                y = temperature[1], # remember which is which this should be number of fish
+                bounds_error = False,
+                fill_value = 0
+            )
+            self.Temp_update_average = None
+        else:
             self.Temp_update_average = interp1d(
                 x = temperature_Average.day_of_year.values, # remember which is which this should be date of fish
                 y = temperature_Average.Temp.values, # remember which is which this should be number of fish
                 bounds_error = False,
                 fill_value = 0
             )
-        else:
-            self.Temp_update_average = None
         self.CF_data = CF_data
         self.use_cleaner_F_update = use_cleaner_F_update
-        self.cleaner_count_update = interp1d(
-            x = CF_data[0], # remember which is which this should be date of fish
-            y = CF_data[1], # remember which is which this should be number of fish
-            bounds_error = False,
-            fill_value = 0
-        )
+        if self.CF_data is not None:
+            self.cleaner_count_update = interp1d(
+                x = CF_data[0], # remember which is which this should be date of fish
+                y = CF_data[1], # remember which is which this should be number of fish
+                bounds_error = False,
+                fill_value = 0
+            )
         self.cleaner_fish = 0
-        self.cleanEff = cleanEff
-        self.biomass = biomass_data
-        self.biomass_update = interp1d(
-            x = biomass_data[0], # remember which is which this should be date of fish
-            y = biomass_data[1]*0.001, # remember which is which this should be number of fish
-            bounds_error = False,
-            fill_value = 0
-        )
+        #  TODO what to do with cleanEff if there is no use for cleaner fish
+        self.cleanEff = cleanEff or 1
+
+        self.surface_ratio_switch = surface_ratio_switch
+        if self.surface_ratio_switch:
+            #self.biomass = biomass_data #  Whats the point with this?
+            self.biomass_update = interp1d(
+                x = biomass_data[0], # remember which is which this should be date of fish
+                y = biomass_data[1]*0.001, # remember which is which this should be number of fish
+                bounds_error = False,
+                fill_value = 0
+            )
         self.plankton = Planktonic_agent(0, self.delta_time)
         self.initial_start = initial_start
-        self.surface_ratio_switch = surface_ratio_switch
         self.seasonal_treatment_treashold = seasonal_treatment_treashold
 
     def update(self, attached=0):
@@ -170,17 +174,14 @@ class Farm:
         self.fish_count = self.fish_count_update(self.time)
         # attchedment_ratio = TODO ger ein attachement ratio  fiskar í byrjandi skulu ikki hava líka nógva lús
 
-        self.temp = self.Temp_update(self.time)
+        dayofyear = pd.to_datetime(dates.num2date(self.time+self.initial_start)).dayofyear
+        #time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
+        #dayofyear = time_new.dayofyear
 
-        time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
-        dayofyear = time_new.dayofyear
-        if self.temp == 0 and (self.Temp_update_average is not None):
+        if self.Temp_update_average is None:
+            self.temp = self.Temp_update(self.time)
+        else:
             self.temp=self.Temp_update_average(dayofyear)
-        #print(self.temp)
-        #print(self.temp)
-        #if self.temp==0:
-        #print(self.fish_count)
-
 
         #  hvussu nógvur fiskur er deyður relatift
         if self.old_fish_count != 0:
@@ -191,14 +192,13 @@ class Farm:
         self.update_weigh(self.prod_time)
 
         #  ratio between surface area between  nógvur fiskur er deyður relatift
-        if self.surface_ratio_switch == 1:
+        if self.surface_ratio_switch:
             Volumen_farm = (self.biomass_update(self.time)*self.fish_count)/20 #schooling density
             Volumen_grid = 160*3*160*3*15
             A_farm  = np.sqrt(Volumen_farm / 15)*np.sqrt(Volumen_farm / 15)
             A_grid = 160*3*160*3
             surface_grid = np.sqrt(Volumen_grid / 15)#4 * 15 * np.sqrt(Volumen_grid / 15) #+ 160*3*2
             surface_farm = np.sqrt(Volumen_farm / 15)#4 * 15 * np.sqrt(Volumen_farm / 15) #+ (Volumen_farm / 10)
-            #print(self.biomass_update(self.time),self.fish_count)
             self.surface_ratio = surface_farm/surface_grid
             #self.surface_ratio = A_farm / A_grid
             #self.surface_ratio = Volumen_farm / Volumen_grid
@@ -216,6 +216,10 @@ class Farm:
                 #============ clenar fish effect========
                 if self.use_cleaner_F_update:
                     self.cleaner_fish += self.cleaner_F_update(self.time)
+                elif self.CF_data is None:
+                    #  if there is no data for cleaner fish dont update it
+                    #  TODO There is still some code for updating for mortalety
+                    pass
                 else:
                     self.cleaner_fish = self.cleaner_count_update(self.time)
                 #print(self.cleaner_fish)
@@ -477,8 +481,6 @@ class Farm:
 
         elif slag == "Slice":
             treat_eff = 1-((1-self.treat_eff[:, NumTreat]))*self.delta_time #1-(1-0.95)*1
-            #print(treat_eff)
-            #print(treat_eff,self.treat_eff[:, NumTreat],self.time,slag)
 
             for lice_slag_f in self.lice_f.values():
                 for mylice_f in lice_slag_f:
