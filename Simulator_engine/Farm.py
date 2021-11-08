@@ -149,7 +149,7 @@ class Farm:
                 bounds_error = False,
                 fill_value = 0
             )
-        self.plankton = Planktonic_agent(0, self.delta_time)
+        self.plankton = Planktonic_agent(self.delta_time)
         self.initial_start = initial_start
         self.seasonal_treatment_treashold = seasonal_treatment_treashold
 
@@ -208,7 +208,6 @@ class Farm:
         #print(self.fish_count)
 
         if self.prod_cyc < self.prod_len_tjek:
-            #self.plankton = Planktonic_agent(0, 0)
 
             if self.prod_time <= self.prod_len[self.prod_cyc] and self.prod_time >= 0:
 
@@ -389,7 +388,7 @@ class Farm:
                     'Pa1': [],
                     'Pa2': [],
                 }
-                self.plankton = Planktonic_agent(0, self.delta_time)
+                self.plankton = Planktonic_agent(self.delta_time)
                 self.adultlice_f = Lice_agent_f(self.time, 0, 1000,self.lice_mortality)  # Ja eg skilji ikki orduliga hi tú setur hettar til 1000
                 self.adultlice_m = Lice_agent_m(self.time, 0, 1000, self.lice_mortality)
                 self.prod_time = -self.fallow[self.prod_cyc]
