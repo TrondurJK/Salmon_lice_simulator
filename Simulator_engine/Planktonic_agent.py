@@ -30,7 +30,8 @@ class Planktonic_agent:
             start_iter = start
             end = (i+1)*delta_time
             while start_iter < min(end, save_time):
-                if (c:=np.floor(start_iter) + 1) < end:
+                c = np.floor(start_iter) + 1
+                if c < end:
                     self.A[int(np.floor(start_iter)), i] = (c - start_iter)/(end - start)
                     start_iter = c
                 else:
