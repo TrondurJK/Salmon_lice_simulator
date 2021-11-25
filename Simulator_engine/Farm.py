@@ -1,5 +1,3 @@
-#from .Lice_agent_female import Lice_agent_f
-#from .Lice_agent_male import Lice_agent_m
 from .Lice_agent import Lice_agent_f, Lice_agent_m
 import numpy as np
 from scipy.interpolate import interp1d
@@ -101,6 +99,7 @@ class Farm:
         self.num_of_treatments = 0
 
         self.prod_len_tjek = len(self.prod_len)
+        self.done = False
         self.weight = weight
         self.W0 = 7 # maximum kg av laksinum
         self.K = 0.008  # growth rate í procent pr dag
@@ -149,9 +148,12 @@ class Farm:
                 bounds_error = False,
                 fill_value = 0
             )
+        #  TODO if the controll of this is put into Farm watch out for the done flag
         self.plankton = Planktonic_agent(self.delta_time)
         self.initial_start = initial_start
         self.seasonal_treatment_treashold = seasonal_treatment_treashold
+        self.cleaner_death = 0
+        self.cleaner_death_ratio = 1
 
     def update(self, attached=0):
         '''
@@ -161,72 +163,63 @@ class Farm:
         attached        Hvussu nógv lús kemur frá ørðum farms
         '''
 
+        #  If we have been true the last production cycle
+        if self.done:
+            return None
+
         self.time += self.delta_time
 
-
-        #print(self.temp)
-
-        #  TODO hettar við start tíð skal sikkurt formilerðast við at gerða
-        #  TODO  self.prod_time negativft í __init__
-        #   if self.fish_count_gen:
-        #   self.fish_count = self.fish_count_genirator.__next__()
         self.old_fish_count = self.fish_count
         self.fish_count = self.fish_count_update(self.time)
-        # attchedment_ratio = TODO ger ein attachement ratio  fiskar í byrjandi skulu ikki hava líka nógva lús
-
-        dayofyear = pd.to_datetime(dates.num2date(self.time+self.initial_start)).dayofyear
-        #time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
-        #dayofyear = time_new.dayofyear
-
-        if self.Temp_update_average is None:
-            self.temp = self.Temp_update(self.time)
-        else:
-            self.temp=self.Temp_update_average(dayofyear)
-
         #  hvussu nógvur fiskur er deyður relatift
         if self.old_fish_count != 0:
             deth_ratio = min(1, self.fish_count / self.old_fish_count)
         else:
             deth_ratio = 1
+        # attchedment_ratio = TODO ger ein attachement ratio  fiskar í byrjandi skulu ikki hava líka nógva lús
 
+        dayofyear = pd.to_datetime(dates.num2date(self.time+self.initial_start)).dayofyear
+        if self.Temp_update_average is None:
+            self.temp = self.Temp_update(self.time)
+        else:
+            self.temp=self.Temp_update_average(dayofyear)
+
+
+        #  TODO This is not in use
         self.update_weigh(self.prod_time)
 
         #  ratio between surface area between  nógvur fiskur er deyður relatift
         if self.surface_ratio_switch:
             Volumen_farm = (self.biomass_update(self.time)*self.fish_count)/20 #schooling density
-            Volumen_grid = 160*3*160*3*15
+            Volumen_grid = 3456000 #160*3*160*3*15
             A_farm  = np.sqrt(Volumen_farm / 15)*np.sqrt(Volumen_farm / 15)
-            A_grid = 160*3*160*3
+            A_grid = 230400 #160*3*160*3
             surface_grid = np.sqrt(Volumen_grid / 15)#4 * 15 * np.sqrt(Volumen_grid / 15) #+ 160*3*2
             surface_farm = np.sqrt(Volumen_farm / 15)#4 * 15 * np.sqrt(Volumen_farm / 15) #+ (Volumen_farm / 10)
             self.surface_ratio = surface_farm/surface_grid
-            #self.surface_ratio = A_farm / A_grid
-            #self.surface_ratio = Volumen_farm / Volumen_grid
         else:
             self.surface_ratio = 1
-        #print(surface_ratio)
-        #print(self.fish_count)
 
-        if self.prod_cyc < self.prod_len_tjek:
+        if self.prod_time < 0:
+            self.prod_time += self.delta_time
 
-            if self.prod_time <= self.prod_len[self.prod_cyc] and self.prod_time >= 0:
+        elif self.prod_time <= self.prod_len[self.prod_cyc]:
 
+            self.prod_time += self.delta_time
 
-                #============ clenar fish effect========
+            #============ clenar fish effect========
+            if self.CF_data is not None:
+                #  if there is no data for cleaner fish dont update it
                 if self.use_cleaner_F_update:
                     self.cleaner_fish += self.cleaner_F_update(self.time)
-                elif self.CF_data is None:
-                    #  if there is no data for cleaner fish dont update it
-                    #  TODO There is still some code for updating for mortalety
-                    pass
                 else:
                     self.cleaner_fish = self.cleaner_count_update(self.time)
-                #print(self.cleaner_fish)
-                #print(self.name,self.time)
+
                 self.cleaner_fish += -self.cleaner_fish*self.delta_time*0.005
 
-                self.cleaner_death = self.cleaner_fish * self.cleanEff *self.delta_time  # how many lice do cleaner fish eat in one delta time step (0.05 per day)
-                #print(self.cleaner_fish,self.cleaner_death,self.time,self.cleanEff)
+                #  How many lice do cleaner fish eat in one delta time step (0.05 per day)
+                self.cleaner_death = self.cleaner_fish * self.cleanEff *self.delta_time 
+
                 sum_mobile_lice = np.sum(
                     [
                         np.sum(self.get_fordeiling()[2:6]), 
@@ -234,176 +227,165 @@ class Farm:
                     ]
                 )
 
-                if self.cleaner_death <=0 or  sum_mobile_lice==0 or np.isnan(self.cleaner_death):
+                if self.cleaner_death <=0 or sum_mobile_lice==0 or np.isnan(self.cleaner_death):
                     self.cleaner_death_ratio = 1
                 else:
                     self.cleaner_death_ratio = max([0.001,(1-self.cleaner_death /
                                                            sum_mobile_lice)])
 
 
-                #=====================
-                self.prod_time += self.delta_time
+            #================================================#
+            #                  _       _       _ _           #
+            #  _   _ _ __   __| | __ _| |_ ___| (_) ___ ___  #
+            # | | | | '_ \ / _` |/ _` | __/ _ \ | |/ __/ _ \ #
+            # | |_| | |_) | (_| | (_| | ||  __/ | | (_|  __/ #
+            #  \__,_| .__/ \__,_|\__,_|\__\___|_|_|\___\___| #
+            #       |_|                                      #
+            #================================================#
 
-                #===============================================
-                #                 _       _       _ _          
-                # _   _ _ __   __| | __ _| |_ ___| (_) ___ ___ 
-                #| | | | '_ \ / _` |/ _` | __/ _ \ | |/ __/ _ \
-                #| |_| | |_) | (_| | (_| | ||  __/ | | (_|  __/
-                # \__,_| .__/ \__,_|\__,_|\__\___|_|_|\___\___|
-                #      |_|                                     
-                #===============================================
+            ###########################################
+            #       Uppdatera ungar f_lús
+            ##########################################
+            for stage, lice_list in self.lice_f.items():
 
-                ###########################################
-                #       Uppdatera ungar f_lús
-                ##########################################
-                for stage, lice_list in self.lice_f.items():
+                # her reini eg at rokna breiting í bioage fyri hvørja stage bara 1 ferð
+                breiting_i_bioage = self.delta_time / ((
+                    Lice_agent_f.Hamre_factors_dict[stage] / (
+                        Lice_agent_f.b * self.temp ** 2 + 
+                        Lice_agent_f.c * self.temp + 
+                        Lice_agent_f.d
+                    )
+                ) * 5)
+                deys_fall =  np.exp(- self.lice_mortality_dict[stage] * self.delta_time) *\
+                        deth_ratio * (1 if stage in ['Ch1', 'Ch2'] else self.cleaner_death_ratio)
+                for lice in lice_list:
+                    lice.quik_update(breiting_i_bioage, deys_fall)
 
-                    # her reini eg at rokna breiting í bioage fyri hvørja stage bara 1 ferð
-                    breiting_i_bioage = self.delta_time / ((
-                        Lice_agent_f.Hamre_factors_dict[stage] / (
-                            Lice_agent_f.b * self.temp ** 2 + 
-                            Lice_agent_f.c * self.temp + 
-                            Lice_agent_f.d
-                        )
-                    ) * 5)
-                    deys_fall =  np.exp(- self.lice_mortality_dict[stage] * self.delta_time) *\
-                            deth_ratio * (1 if stage in ['Ch1', 'Ch2'] else self.cleaner_death_ratio)
-                    for lice in lice_list:
-                        lice.quik_update(breiting_i_bioage, deys_fall)
+            ###########################################
+            #       Uppdatera vaksnar f_lús
+            ##########################################
+            self.adultlice_f.update(self.temp, self.delta_time, deth_ratio,
+                                    self.cleaner_death_ratio)
 
-                ###########################################
-                #       Uppdatera vaksnar f_lús
-                ##########################################
-                self.adultlice_f.update(self.temp, self.delta_time, deth_ratio,
-                                        self.cleaner_death_ratio)
-
-                ###########################################
-                #       Skift stadie á ungum f_lús
-                ##########################################
-                for stage1, stage2, new_key in zip(
-                    list(self.lice_f.values())[:-1],
-                    list(self.lice_f.values())[1:],
-                    list(self.lice_f.keys())[1:]
-                ):
-                    #  Hettar tekur tær elstu fyrst so um nakar hevur skift stadie so er tað tann elsta
-                    while stage1:
-                        stage1[0].update_stage()
-                        if stage1[0].get_stage() == new_key:
-                            stage2.append(stage1.pop(0))
-                        else:
-                            break
-
-                ###########################################
-                #       Skift stadie á vaksnum f_lús
-                ##########################################
-                while self.lice_f['Adult']:
-                    self.lice_f['Adult'][0].update_stage()
-                    if self.lice_f['Adult'][0].get_stage() == 'Adult_gravid':
-                        self.adultlice_f.count += self.lice_f['Adult'].pop(0).count
-                    else:
-                        break  # Hví break her??
-
-                ###########################################
-                #       Uppdatera ungar m_lús
-                ##########################################
-                for stage, lice_list in self.lice_m.items():
-
-                    breiting_i_bioage = self.delta_time / ((
-                        Lice_agent_m.Hamre_factors_dict[stage] / (
-                            Lice_agent_m.b * self.temp ** 2 + 
-                            Lice_agent_m.c * self.temp + 
-                            Lice_agent_m.d
-                        )
-                    ) * 5)
-
-                    deys_fall =  np.exp(- self.lice_mortality_dict[stage] * self.delta_time) *\
-                            deth_ratio * (1 if stage in ['Ch1', 'Ch2'] else self.cleaner_death_ratio)
-                    for lice in lice_list:
-                        lice.quik_update(breiting_i_bioage, deys_fall)
-
-                ###########################################
-                #       Uppdatera vaksnar m_lús
-                ##########################################
-                self.adultlice_m.update(self.temp, self.delta_time, deth_ratio,self.cleaner_death_ratio)
-
-                ###########################################
-                #       Skift stadie á ungum m_lús
-                ##########################################
-                for stage1, stage2, new_key in zip(
-                    list(self.lice_m.values())[:-1],
-                    list(self.lice_m.values())[1:],
-                    list(self.lice_m.keys())[1:]
-                ):
-                    #  Hettar tekur teir elstu fyrst so um nakar hevur skift stadie so er tað teir elsta
-                    while stage1:
-                        stage1[0].update_stage()
-                        if stage1[0].get_stage() == new_key:
-                            stage2.append(stage1.pop(0))
-                        else:
-                            break
-
-                ###########################################
-                #       Skift stadie á vaksnum f_lús
-                ##########################################
-                while self.lice_m['Pa2']:
-                    self.lice_m['Pa2'][0].update_stage()
-                    if self.lice_m['Pa2'][0].get_stage() == 'Adult':
-                        self.adultlice_m.count += self.lice_m['Pa2'].pop(0).count
+            ###########################################
+            #       Skift stadie á ungum f_lús
+            ##########################################
+            for stage1, stage2, new_key in zip(
+                list(self.lice_f.values())[:-1],
+                list(self.lice_f.values())[1:],
+                list(self.lice_f.keys())[1:]
+            ):
+                #  Hettar tekur tær elstu fyrst so um nakar hevur skift stadie so er tað tann elsta
+                while stage1:
+                    stage1[0].update_stage()
+                    if stage1[0].get_stage() == new_key:
+                        stage2.append(stage1.pop(0))
                     else:
                         break
 
-                #  Create a new Lice_agent
-                temp_lice_female = Lice_agent_f(self.time, 0, 0,self.lice_mortality)
-                temp_lice_male = Lice_agent_m(self.time, 0, 0, self.lice_mortality)
-                mu_f = temp_lice_female.get_mu()
-                mu_m = temp_lice_male.get_mu()
-                #print(attached)
-                #print(self.time,self.name)
-                smitta = (self.L_0 + attached)*self.surface_ratio
-                #print(self.surface_ratio)
-                #if self.name == 'Lopra':
-                #    print(smitta,self.name)
+            ###########################################
+            #       Skift stadie á vaksnum f_lús
+            ##########################################
+            while self.lice_f['Adult']:
+                self.lice_f['Adult'][0].update_stage()
+                if self.lice_f['Adult'][0].get_stage() == 'Adult_gravid':
+                    self.adultlice_f.count += self.lice_f['Adult'].pop(0).count
+                else:
+                    break  # Hví break her??
 
-                temp_lice_female.count = smitta / mu_f * (1 - np.exp(-mu_f * self.delta_time))*0.5
-                temp_lice_male.count = smitta / mu_m * (1 - np.exp(-mu_m * self.delta_time))*0.5
-                self.lice_f['Ch1'].append(temp_lice_female)
-                self.lice_m['Ch1'].append(temp_lice_male)
-                #print([np.sum(self.get_fordeiling()[0:6]), np.sum(self.get_fordeiling()[6:])])
-                #print(self.name,self.time)
+            ###########################################
+            #       Uppdatera ungar m_lús
+            ##########################################
+            for stage, lice_list in self.lice_m.items():
 
-            elif self.prod_time >= self.prod_len[self.prod_cyc]:
-                #self.get_fordeiling = self.get_fordeiling()*0
-                self.fish_count =0
-                self.lice_f = {
-                    'Ch1': [],
-                    'Ch2': [],
-                    'Pa1': [],
-                    'Pa2': [],
-                    'Adult': [],
-                }
+                breiting_i_bioage = self.delta_time / ((
+                    Lice_agent_m.Hamre_factors_dict[stage] / (
+                        Lice_agent_m.b * self.temp ** 2 + 
+                        Lice_agent_m.c * self.temp + 
+                        Lice_agent_m.d
+                    )
+                ) * 5)
 
-                self.lice_m = {
-                    'Ch1': [],
-                    'Ch2': [],
-                    'Pa1': [],
-                    'Pa2': [],
-                }
-                self.plankton = Planktonic_agent(self.delta_time)
-                self.adultlice_f = Lice_agent_f(self.time, 0, 1000,self.lice_mortality)  # Ja eg skilji ikki orduliga hi tú setur hettar til 1000
-                self.adultlice_m = Lice_agent_m(self.time, 0, 1000, self.lice_mortality)
-                self.prod_time = -self.fallow[self.prod_cyc]
-                self.prod_cyc += 1
-                self.cleaner_fish =0
+                deys_fall =  np.exp(- self.lice_mortality_dict[stage] * self.delta_time) *\
+                        deth_ratio * (1 if stage in ['Ch1', 'Ch2'] else self.cleaner_death_ratio)
+                for lice in lice_list:
+                    lice.quik_update(breiting_i_bioage, deys_fall)
 
+            ###########################################
+            #       Uppdatera vaksnar m_lús
+            ##########################################
+            self.adultlice_m.update(self.temp, self.delta_time, deth_ratio,self.cleaner_death_ratio)
 
-            else:
-                self.prod_time += self.delta_time
+            ###########################################
+            #       Skift stadie á ungum m_lús
+            ##########################################
+            for stage1, stage2, new_key in zip(
+                list(self.lice_m.values())[:-1],
+                list(self.lice_m.values())[1:],
+                list(self.lice_m.keys())[1:]
+            ):
+                #  Hettar tekur teir elstu fyrst so um nakar hevur skift stadie so er tað teir elsta
+                while stage1:
+                    stage1[0].update_stage()
+                    if stage1[0].get_stage() == new_key:
+                        stage2.append(stage1.pop(0))
+                    else:
+                        break
+
+            ###########################################
+            #       Skift stadie á vaksnum m_lús
+            ##########################################
+            while self.lice_m['Pa2']:
+                self.lice_m['Pa2'][0].update_stage()
+                if self.lice_m['Pa2'][0].get_stage() == 'Adult':
+                    self.adultlice_m.count += self.lice_m['Pa2'].pop(0).count
+                else:
+                    break
+
+            ###########################################
+            #  Create a new Lice_agent
+            ###########################################
+            smitta = (self.L_0 + attached)*self.surface_ratio
+
+            temp_lice_female = Lice_agent_f(self.time, 0, 0,self.lice_mortality)
+            mu_f = temp_lice_female.get_mu()
+            temp_lice_female.count = smitta / mu_f * (1 - np.exp(-mu_f * self.delta_time))*0.5
+            self.lice_f['Ch1'].append(temp_lice_female)
+
+            temp_lice_male = Lice_agent_m(self.time, 0, 0, self.lice_mortality)
+            mu_m = temp_lice_male.get_mu()
+            temp_lice_male.count = smitta / mu_m * (1 - np.exp(-mu_m * self.delta_time))*0.5
+            self.lice_m['Ch1'].append(temp_lice_male)
+
+        elif self.prod_time > self.prod_len[self.prod_cyc]:
+            self.fish_count =0
+            self.lice_f = {
+                'Ch1': [],
+                'Ch2': [],
+                'Pa1': [],
+                'Pa2': [],
+                'Adult': [],
+            }
+
+            self.lice_m = {
+                'Ch1': [],
+                'Ch2': [],
+                'Pa1': [],
+                'Pa2': [],
+            }
+            self.plankton = Planktonic_agent(self.delta_time)
+            self.adultlice_f = Lice_agent_f(self.time, 0, 1000,self.lice_mortality)  # Ja eg skilji ikki orduliga hi tú setur hettar til 1000
+            self.adultlice_m = Lice_agent_m(self.time, 0, 1000, self.lice_mortality)
+            self.prod_time = -self.fallow[self.prod_cyc]
+            self.prod_cyc += 1
+            self.cleaner_fish =0
+            if self.prod_cyc >= self.prod_len_tjek:
+                self.done = True
 
 
         #print(self.SliceON)
         if self.NumTreat<=self.num_treat_tjek:
             if self.time > self.treatment[self.NumTreat]: # and self.treatment[self.NumTreat]>0:
-                #print(self.treatment_type[self.NumTreat])
                 if self.treatment[self.NumTreat]>0:
                     if self.treatment_type[self.NumTreat] in ['FoodTreatment:', 'Emamectin', 'Slice']:
                         self.NumTreat_slice = self.NumTreat
@@ -420,12 +402,9 @@ class Farm:
         if self.SliceON >= 0:
             self.avlusing('Slice', self.NumTreat_slice, 1, self.temp)
 
-            #print(self.SliceON,self.NumTreat)
             self.SliceON += -self.delta_time
 
         if self.fish_count!=0:
-            #print(self.name,self.get_fordeiling(calculate=True)[4],self.time)
-            #print(np.sum([self.get_fordeiling(calculate=True)[4], self.get_fordeiling(calculate=True)[5]]))
             if self.seasonal_treatment_treashold:
                 relevant_treatment = self.diff_treatment[1][self.diff_treatment[0]==dayofyear]
                 if np.sum([self.get_fordeiling(calculate=True)[4:6]]) / self.fish_count > relevant_treatment: # OOurt ther sum sigur nær tað er hvat í løbi av árinum
@@ -436,10 +415,10 @@ class Farm:
                     self.avlusing('TreatmentX', 1, 1, self.temp)
 
         if self.prod_time<0:
-            #print(self.time, 'Fasle',self.get_fordeiling())
+
             self.get_fordeiling(fallow=1)
         else:
-            #print(self.time,'True',self.get_fordeiling())
+
             self.get_fordeiling(calculate=True)
 
     def avlusing(self, slag, NumTreat, consentration, temp):
@@ -533,14 +512,14 @@ class Farm:
             self.__fordeiling__ = [Ch1_f, Ch2_f, Pa1_f, Pa2_f, Adult_f,Adult_gravid_f,Ch1_m, Ch2_m, Pa1_m, Pa2_m, Adult_m]
         return self.__fordeiling__
 
-    #def __repr__(self):
-    #    return self.smitta # 'farmin %s sum hevur %s fiskar' % (self.name, self.fish_count)
+    def __repr__(self):
+        return self.smitta # 'farmin %s sum hevur %s fiskar' % (self.name, self.fish_count)
 
+    #  TODO hettar skal eftirhiggjast
     def update_weigh(self,prod_time):
         self.W = self.W0*(1-np.exp(-self.K*prod_time))**3  #(1-np.exp(-self.K*(t)))**3 #0.0028 * self.W ** (2 / 3) * (1 - (self.W / 6) ** (1 / 3))
         #(1-np.exp(-self.K*(t)))**3 #0.0028 * self.W ** (2 / 3) * (1 - (self.W / 6) ** (1 / 3))
         return self.W
-
 
     def cleaner_F_update(self,time):
         idx = np.where(np.logical_and(self.CF_data[0] > time - 0.001, self.CF_data[0] < time + 0.001))
