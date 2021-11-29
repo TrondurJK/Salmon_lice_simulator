@@ -5,7 +5,7 @@ print('hey hey')
 import matplotlib.pyplot as plt
 #from Lice_similator.kodur.tictoc import tic, toc
 from Simulator_engine.Farm import Farm
-from Simulator_engine.System_3_FO import System
+from Simulator_engine.System import System
 from Simulator_engine.run_sim_test import init_run_sim
 #from Lice_similator.kodur.Licedata_input_norge import Licedata_NO
 

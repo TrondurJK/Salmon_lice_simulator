@@ -5,7 +5,7 @@ print('hey hey')
 import matplotlib.pyplot as plt
 #from Lice_similator.kodur.tictoc import tic, toc
 from Simulator_engine.Farm import Farm
-from Simulator_engine.System_3_FO import System
+from Simulator_engine.System import System
 from Simulator_engine.run_sim_test import init_run_sim
 import time
 #from Lice_similator.kodur.Licedata_input_norge import Licedata_NO
@@ -164,69 +164,3 @@ ax.set_ylim(0,10)
 ax.set_xlim(0,1000)
 
 plt.show()
-
-
-
-
-fig, ax = plt.subplots(2, 2)
-ax[0,1].plot(x,y_Ch_farm[1],'g-',linewidth = 3)
-ax[0,1].plot(x,y_PA_farm[1],'y-',linewidth = 3)
-ax[0,1].plot(x,y_AF_farm[1],'r-',linewidth = 3)
-#ax[0,1].plot(x,y_AG_farm[1],'k-',linewidth = 3)
-ax[0,1].plot(date,temp/10,'b-',label='Temperature/10')
-ax[0,1].plot([200,200],[0,max(y_Ch_farm[1])],'k--',label='Treatment: eff. 90%',linewidth = 3)
-ax[0,1].set_ylim(0,10)
-ax[0,1].set_xlim(0,349)
-#ax[0,1].yaxis.set_visible(False)
-#ax[0,1].xaxis.set_visible(False)
-ax[0,1].tick_params(axis='x', labelsize=15)
-ax[0,1].tick_params(axis='y', labelsize=15)
-ax[0,1].legend(loc ="upper left",fontsize =15)
-
-ax[1,0].plot(x,y_Ch_farm[2],'g-',linewidth = 3)
-ax[1,0].plot(x,y_PA_farm[2],'y-',linewidth = 3)
-ax[1,0].plot(x,y_AF_farm[2],'r-',linewidth = 3)
-#ax[1,0].plot(x,y_AG_farm[2],'k-',linewidth = 3)
-ax[1,0].plot(date,temp/10,'b-',label='Temperature/10')
-ax[1,0].plot([250,250],[0,max(y_Ch_farm[2])],'k--',label='Treatment: eff. 90%',linewidth = 3)
-ax[1,0].set_xlabel('time (days since stocking)',fontsize =20)
-ax[1,0].set_ylabel('lice/salmon',fontsize =20)
-ax[1,0].set_xlim(0,450)
-ax[1,0].set_ylim(0,20)
-#ax[1,1].yaxis.set_visible(False)
-#ax[1,1].xaxis.set_visible(False)
-ax[1,0].tick_params(axis='x', labelsize=15)
-ax[1,0].tick_params(axis='y', labelsize=15)
-ax[1,0].legend(loc ="upper left",fontsize =15)
-
-ax[1,1].plot(x,y_Ch_farm[3],'g-',linewidth = 3)
-ax[1,1].plot(x,y_PA_farm[3],'y-',linewidth = 3)
-ax[1,1].plot(x,y_AF_farm[3],'r-',linewidth = 3)
-#ax[1,1].plot(x,y_AG_farm[3],'k-',linewidth = 3)
-ax[1,1].plot(date,temp/10,'b-',label='Temperature/10')
-ax[1,1].plot([200,200],[0,10],'k--',label='Oral treatment: eff. 5% d$^{-1}$',linewidth = 3)
-ax[1,1].set_xlabel('time (days since stocking)',fontsize =20)
-#ax[1,1].set_ylabel('lice/salmon',fontsize=15)
-ax[1,1].set_ylim(0,1)
-ax[1,1].set_xlim(0,349)
-#ax[1,1].yaxis.set_visible(False)
-#ax[1,1].xaxis.set_visible(False)
-ax[1,1].tick_params(axis='x', labelsize=15)
-ax[1,1].tick_params(axis='y', labelsize=15)
-ax[1,1].legend(loc ="upper left",fontsize =15)
-
-manager = plt.get_current_fig_manager()
-#manager.window.showMaximized()
-#plt.tight_layout()
-plt.show()
-fig.savefig('Figure_treatments_temp_10.pdf')
-
-plt.show()
-
-
-
-
-
-#plt.plot(x,y_AF_farm_2)
-print('kemur tað her til?')
-
