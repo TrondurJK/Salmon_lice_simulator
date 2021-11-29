@@ -155,6 +155,13 @@ class Farm:
         self.cleaner_death = 0
         self.cleaner_death_ratio = 1
 
+    def update_temp(self):
+        self.dayofyear = pd.to_datetime(dates.num2date(self.time+self.initial_start)).dayofyear
+        if self.Temp_update_average is None:
+            self.temp = self.Temp_update(self.time)
+        else:
+            self.temp=self.Temp_update_average(self.dayofyear)
+
     def update(self, attached=0):
         '''
         Hvat skal henda tá ið man uppdaterar Farmina
@@ -177,13 +184,6 @@ class Farm:
         else:
             deth_ratio = 1
         # attchedment_ratio = TODO ger ein attachement ratio  fiskar í byrjandi skulu ikki hava líka nógva lús
-
-        dayofyear = pd.to_datetime(dates.num2date(self.time+self.initial_start)).dayofyear
-        if self.Temp_update_average is None:
-            self.temp = self.Temp_update(self.time)
-        else:
-            self.temp=self.Temp_update_average(dayofyear)
-
 
         #  TODO This is not in use
         self.update_weigh(self.prod_time)
