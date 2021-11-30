@@ -7,7 +7,7 @@ def init_run_sim(args):
     return run_sim(*args)
 
 
-def run_sim(delta_time, stop_time, system, inital_start):
+def run_sim(delta_time, stop_time, system):
     farms = system.farms
     Num_of_treatment_list = [[] for _ in farms]
     stages_f_list = [

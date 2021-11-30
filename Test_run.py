@@ -96,16 +96,14 @@ for index,farm_id in enumerate(farm_names)
 #Run_matrix_age[pd.isna(Run_matrix_age)]=0
 #c_matrix_age = Run_matrix_age
 
-system = System(farms=farms, c_matrix=Con_matrix,
-                delta_time=delta_time,temperature_input = [[0,stop_time],[10,10]],
-                inital_start=inital_start)
+system = System(farms=farms, c_matrix=Con_matrix)
 
 start = time.time()
 print("engine start")
 
 koyringar =[]
 
-koyringar.append((delta_time, stop_time, system, inital_start))
+koyringar.append((delta_time, stop_time, system))
 
 # ========== main loop======================
 out = init_run_sim(koyringar[0])

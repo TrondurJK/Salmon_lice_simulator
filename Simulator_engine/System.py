@@ -1,4 +1,3 @@
-#from .Planktonic_agent import Planktonic_agent
 import numpy as np
 import pandas as pd
 from matplotlib import dates
@@ -8,8 +7,7 @@ class System:
     '''
     Class of whole system
     '''
-    def __init__(self, farms, c_matrix,delta_time,temperature_input=None,
-                 temperature_Average=None, inital_start=0):
+    def __init__(self, farms, c_matrix):
         '''
         :params:
         farms               Ein listi av farms sum eru í systeminum
@@ -17,49 +15,13 @@ class System:
         time_to_infect      Hvussu leingi tekur tað frá at lísnar verða gjørdar
                                                                 til tær seta seg
         '''
-        #  TODO deltatime burda verði ein partur av hesum classanum
-        self.delta_time =delta_time
-        # TODO Raise Exception um inital_start ikki er definera ordiligt
-        self.initial_start = inital_start
+
         self.farms = farms
         self.c_matrix = np.array(c_matrix)
         shape = self.c_matrix.shape
         if len(self.c_matrix.shape):
             assert shape[0] == shape[1]
             assert len(self.farms) == shape[0]
-        #self.c_matrix_age = np.array(c_matrix_age)
-#        shape = self.c_matrix_age.shape
-#        if len(self.c_matrix_age.shape):
-#            assert shape[0] == shape[1]
-#            assert len(self.farms) == shape[0]
-
-
-        # TODO raise an Exception um temperature_input ikki er definera
-        if temperature_input is not None:
-            self.Temp_update = interp1d(
-                x = temperature_input[0], # remember which is which this should be date of fish
-                y = temperature_input[1], # remember which is which this should be number of fish
-                bounds_error = False,
-                fill_value = 0
-            )
-        else:
-            self.Temp_update = None
-
-        if temperature_Average is not None:
-            self.Temp_update_average = interp1d(
-                x = temperature_Average.day_of_year.values, # remember which is which this should be date of fish
-                y = temperature_Average.Temp.values, # remember which is which this should be number of fish
-                bounds_error = False,
-                fill_value = 0
-            )
-        else:
-            self.Temp_update_average = None
-
-        if self.Temp_update is None and self.Temp_update_average is None:
-            raise ValueError('her er eingin tempraturur')
-        if self.Temp_update is None:
-            #TODO Hettar burdi ikki staði soleisis plz fixa meg
-            self.Temp_update = lambda x: 0
 
         self.pop = [[] for _ in farms] #  populatión á planktonisku verðinum
 
@@ -75,25 +37,17 @@ class System:
         delta_time      breiting í tíð
         '''
 
-        time_doy = pd.to_datetime(dates.num2date(time))
         smittarar = []
-        dayofyear = time_doy.dayofyear
-        #print(self.farms.name)
-        temp = self.Temp_update(time-self.initial_start)
-        if temp == 0 and self.Temp_update_average is not None:
-            #time_new = pd.to_datetime(dates.num2date(self.time+self.initial_start))
-            #dayofyear = time_new.dayofyear
-            temp = self.Temp_update_average(dayofyear)
-        #print(time,temp)
-        #with open('temp1', 'a+') as f:
-        #    f.write(f'{time},{temp},{dayofyear}\n')
-        #temp = self.Temp_update_average(dayofyear)
+
         farm_nr = 0
         for farm in self.farms:
             '''
             farm er ein farm og my pop er pop sum hoyrur til somu farm
             '''
-            #delay = self.c_matrix[farm_nr, :, dayofyear - 1,:]
+
+            farm.update_temp() # koyrir farm.update_temp fyri at fáa fatur á aktuella temperaturinum og dayof year
+            temp = farm.temp
+            dayofyear = farm.dayofyear
 
             if np.isnan(farm.get_fordeiling()[4]) or farm.fish_count == 0:
                 smitta_count = np.zeros((40))
@@ -107,8 +61,7 @@ class System:
         for i in range(0,len(self.farms)):
             a = self.c_matrix[:, i, dayofyear - 1, :]
             b = np.array(smittarar)
-            #print(a)
-            #print(b)
+
             attached_list.append(np.sum(a*b))
 
             # frá farm, til farm, dagar síðani sim byrjaði, delay
