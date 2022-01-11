@@ -17,7 +17,8 @@ class Farm:
                  weight = 0.2, lusateljingar=[], fish_count_history = None,temperature=None,
                  temperature_Average=None,CF_data =None,biomass_data =None,initial_start=None,
                  cleanEff =None,lice_mortality=None,surface_ratio_switch=False,
-                 use_cleaner_F_update=False, seasonal_treatment_treashold=False):
+                 use_cleaner_F_update=False, seasonal_treatment_treashold=False,
+                 treatment_period = 1):
         '''
         :params:
             time            Tíðin tá ið farmin verður gjørd
@@ -97,7 +98,7 @@ class Farm:
         diff_treat = np.append(dofy[0:int(len(dofy)/2)]*0+20,dofy[int(len(dofy)/2):]*0+80)
         self.diff_treatment = [dofy,diff_treat]
         self.num_of_treatments = 0
-
+        self.treatment_period = treatment_period
         self.prod_len_tjek = len(self.prod_len)
         self.done = False
         self.weight = weight
@@ -390,7 +391,7 @@ class Farm:
                     if self.treatment_type[self.NumTreat] in ['FoodTreatment:', 'Emamectin', 'Slice']:
                         self.NumTreat_slice = self.NumTreat
                         self.avlusing('Slice',self.NumTreat_slice, 1, self.temp)
-                        self.SliceON = 40
+                        self.SliceON = self.treatment_period # length of treatment effect
                     else:
                         self.avlusing('TreatmentY', self.NumTreat, 1, self.temp)
 
@@ -406,7 +407,7 @@ class Farm:
 
         if self.fish_count!=0:
             if self.seasonal_treatment_treashold:
-                relevant_treatment = self.diff_treatment[1][self.diff_treatment[0]==dayofyear]
+                relevant_treatment = self.diff_treatment[1][self.diff_treatment[0]==self.dayofyear]
                 if np.sum([self.get_fordeiling(calculate=True)[4:6]]) / self.fish_count > relevant_treatment: # OOurt ther sum sigur nær tað er hvat í løbi av árinum
                     self.avlusing('TreatmentX', 1, 1, self.temp)
                     self.num_of_treatments += 1

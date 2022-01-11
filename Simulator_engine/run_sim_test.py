@@ -31,7 +31,6 @@ def run_sim(delta_time, stop_time, system):
     while t < stop_time:
         t += delta_time  # TODO hettar skal sikkurt flytast inn í nauplii
 
-
         system.update(t) #+inital_start)
 
         for farm, stages_f,stages_m, index, fish_count_save, clean_fish_save, attached_save,Num_of_treatment in \

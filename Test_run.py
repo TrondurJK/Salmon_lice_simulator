@@ -32,13 +32,16 @@ for index,i in enumerate(farm_names):
 #    Run_matrix_age = np.dstack((Run_matrix_age, c_matrix_age))
 
 #=========== define treatments ==============
-treat_date = [[0],[0],[0],[0]]
+treat_date = [[0,200],[0],[0],[0]]
 num_treatment = [len(x) for x in treat_date]
 Treatment_array = [np.zeros((6, x)) for x in num_treatment]
 Treatment_array = [x+0.1 for x in Treatment_array]
 Treatment_array[3] = Treatment_array[2]*0+0.95
-treatment_type =[['any'],['any'],['any'],['any']]#[['any'],['any'],['FoodTreatment:'],['any']]
+treatment_type =[['any','Slice'],['any'],['any'],['any']]#[['any'],['any'],['FoodTreatment:'],['any']]
 
+Treatment_array[0][0:2,0] = Treatment_array[0][0:2,0]*0+0.11 # chalimus
+Treatment_array[0][2:4,0] = Treatment_array[0][2:4,0]*0+0.33 # Pre-adult
+Treatment_array[0][4:6,0] = Treatment_array[0][4:6,0]*0+0.55 # Adult female
 #====================== manually determine effect of food treatments =====================
 idx_slice = []
 for x in ['Slice', 'Emamectin', 'FoodTreatment:']:
@@ -50,10 +53,10 @@ for x in ['Slice', 'Emamectin', 'FoodTreatment:']:
 for slices in idx_slice:
     Treatment_array[slices[0]][0][slices[1]] = 0.00  # Chalimus 1
     Treatment_array[slices[0]][1][slices[1]] = 0.00  # Chalimus 2
-    Treatment_array[slices[0]][2][slices[1]] = 1.00  # Pre-adult 1
-    Treatment_array[slices[0]][3][slices[1]] = 1.00  # Pre-adult 2
-    Treatment_array[slices[0]][4][slices[1]] = 1  # adult
-    Treatment_array[slices[0]][5][slices[1]] = 1.00  # adult gravid
+    Treatment_array[slices[0]][2][slices[1]] = 0  # Pre-adult 1
+    Treatment_array[slices[0]][3][slices[1]] = 0  # Pre-adult 2
+    Treatment_array[slices[0]][4][slices[1]] = 0  # adult
+    Treatment_array[slices[0]][5][slices[1]] = 0  # adult gravid
 
 #======= initiate farm class =============
 wrasse_data =[[0, 0],[0, 0]],\
@@ -80,14 +83,15 @@ Farm(0,delta_time,1_000_000,
      treatment_type = treatment_type[index],                                              # Inputs type of treatments
      NumTreat=0,
      treat_eff=np.array(Treatment_array[index]),
-     fish_count_history = [np.arange(0,1000), np.arange(0,1000)*0+500_000],   # date, number of fish here set to 500_000 fish
+     fish_count_history = [np.arange(0,1003), np.arange(0,1003)*0+500_000],   # date, number of fish here set to 500_000 fish
      temperature = temperature,
      CF_data = np.array(wrasse_data[index]),
      biomass_data = [[0,stop_time],np.array([1,1])],
      initial_start=inital_start,
      cleanEff =0.3,
      lice_mortality=[0.01,0.01,0.02,0.02,0.02,0.02],
-     surface_ratio_switch=0
+     surface_ratio_switch=0,
+     treatment_period = 100
     )
 for index,farm_id in enumerate(farm_names)
 ]
@@ -160,5 +164,16 @@ ax.plot(x,y_AF_farm[3],'r-',linewidth = 3)
 #ax[0,1].plot(x,y_AG_farm[1],'k-',linewidth = 3)
 ax.set_ylim(0,10)
 ax.set_xlim(0,1000)
+
+fig3, ax3 = plt.subplots()
+
+#ax3.plot(x,y_Ch_farm[0],'r-',linewidth = 3)
+#ax3.plot(x,y_Ch_farm[1],'r-',linewidth = 3)
+ax3.plot(x,y_Ch_farm[2],'r-',linewidth = 3)
+#ax3.plot(x,y_Ch_farm[3],'r-',linewidth = 3)
+#ax[0,1].plot(x,y_AG_farm[1],'k-',linewidth = 3)
+
+ax3.set_xlim(0,1000)
+
 
 plt.show()
