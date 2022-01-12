@@ -1,12 +1,12 @@
 import numpy as np
 
 class Lice_agent:
-    def __init__(self, born, count, bio_age,lice_mortality):
+    def __init__(self, born, count, bio_age, lice_mortality, stage='Ch1'):
         
         self.born = born
         self.count = count
         self.bio_age = bio_age
-        self.__stage__ = 'Ch1'
+        self.__stage__ = stage
         self.lice_mortality = lice_mortality
 
     def update(self, temp, delta_time, fish_deth_ratio, cleaner_death_ratio):
@@ -164,9 +164,9 @@ class Lice_agent_f(Lice_agent):
     c = 0.008667
     d = 0.003750
 
-    def __init__(self, born, count, bio_age,lice_mortality):
+    def __init__(self, born, count, bio_age,lice_mortality, **kwargs):
         
-        super().__init__(born, count, bio_age,lice_mortality)
+        super().__init__(born, count, bio_age,lice_mortality, **kwargs)
 
 class Lice_agent_m(Lice_agent):
 
@@ -189,7 +189,7 @@ class Lice_agent_m(Lice_agent):
     c = 0.010294
     d = 0.005729
 
-    def __init__(self, born, count, bio_age,lice_mortality):
+    def __init__(self, born, count, bio_age,lice_mortality, **kwargs):
 
-        super().__init__(born, count, bio_age,lice_mortality)
+        super().__init__(born, count, bio_age,lice_mortality, **kwargs)
 
