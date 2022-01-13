@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 #import pandas as pd
 import matplotlib
 print('hey hey')
@@ -177,3 +178,4 @@ ax3.set_xlim(0,1000)
 
 
 plt.show()
+pd.DataFrame(y_AF_farm).T.to_csv('new.csv')
