@@ -1,14 +1,10 @@
 import numpy as np
-#import pandas as pd
 import matplotlib
-print('hey hey')
 import matplotlib.pyplot as plt
-#from Lice_similator.kodur.tictoc import tic, toc
 from Simulator_engine.Farm import Farm
 from Simulator_engine.System import System
 from Simulator_engine.run_sim_test import init_run_sim
 import time
-#from Lice_similator.kodur.Licedata_input_norge import Licedata_NO
 
 
 #========= Farms of interest ===============
