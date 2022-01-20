@@ -20,7 +20,7 @@ class Farm:
                  temperature_Average=None,CF_data =None,biomass_data =None,initial_start=None,
                  cleanEff =None,lice_mortality=None,surface_ratio_switch=False,
                  use_cleaner_F_update=False, seasonal_treatment_treashold=False,
-                 treatment_period = None):
+                 treatment_period = None, is_food=None):
         '''
         :params:
             time            Tíðin tá ið farmin verður gjørd
@@ -71,12 +71,12 @@ class Farm:
         self.__fordeiling__ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.prod_cyc = prod_cyc
         self.treatment = treatments
-        #self.SliceON = 0 # -1 merkir at Slice ella Foodtreatment aðrar treatments ikk eru ON. > 0 eru ON
-        self.treat = Treatments_control(treatments, NumTreat, treatment_type, treat_eff, treatment_period)
-        #self.NumTreat = NumTreat
-        #self.treatment_type = treatment_type
-        #self.treat_eff = treat_eff
-        #self.treatment_period = treatment_period
+
+        if isinstance(treatments, Treatments_control):
+            self.treat = treatments
+        else:
+            self.treat = Treatments_control(treatments, NumTreat, treatment_type, treat_eff, treatment_period, is_food=is_food)
+
         self.num_treat_tjek = np.alen(treatments)-1
         dofy = np.arange(0, 366)
         diff_treat = np.append(dofy[0:int(len(dofy)/2)]*0+20,dofy[int(len(dofy)/2):]*0+80)
@@ -228,7 +228,7 @@ class Farm:
         if self.time_to_next_treat< self.delta_time:
             make_treat = self.treat.apply_Treat(self.time, self.delta_time)
             if make_treat[0]:
-                self.avlusing('newtype', make_treat[1])
+                self.avlusing(make_treat[1])
             self.time_to_next_treat = make_treat[2]
         else:
             self.time_to_next_treat -= self.delta_time
@@ -240,25 +240,22 @@ class Farm:
         else:
             self.get_fordeiling(calculate=True)
 
-    def avlusing(self, slag, NumTreat):
+    def avlusing(self, treat_eff):
         '''
-        Hvat sker tá ið tað verður avlúsa
-        :params:
-        slag            Hvat fyri slag av avlúsing er talan um
-        -------------------
-        slag = 'X' er ein viðgerð sum drepur 95% av øllum føstum lúsum
+        apply a treatment to all the lice
+        params : treat_eff is a list (of lenght 6) off big proportion of the lice survive in
+                            in the order of [Ch1, Ch2, Pa1, Pa2, Adult, Adult_gravid]
         '''
 
-        treat_eff = NumTreat
-        for lice_slag_f in self.lice_f.values():
-            for mylice_f in lice_slag_f:
-                mylice_f.Slice(treat_eff)
+        for stage, eff in zip(['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult'], treat_eff):
+            for mylice_f in self.lice_f.get(stage, []):
+                mylice_f.treatment(eff)
 
-        for lice_slag_m in self.lice_m.values():
-            for mylice_m in lice_slag_m:
-                mylice_m.Slice(treat_eff)
-        self.adultlice_f.Slice(treat_eff)
-        self.adultlice_m.Slice(treat_eff)
+            for mylice_m in self.lice_m.get(stage, []):
+                mylice_m.treatment(eff)
+
+        self.adultlice_f.treatment(treat_eff[5])
+        self.adultlice_m.treatment(treat_eff[4])
 
     def get_fordeiling(self, calculate=False, fallow=0):
         '''

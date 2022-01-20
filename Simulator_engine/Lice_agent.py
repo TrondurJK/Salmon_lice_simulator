@@ -74,34 +74,6 @@ class Lice_agent:
         Hendan kodan koyrur tá ið treatmentX verður gjørd
         '''
 
-    def TreatmentY(self, treat_eff):
-        if self.get_stage() in ['Ch1']:
-            self.count = self.count * treat_eff[0]
-        if self.get_stage() in ['Ch2']:
-            self.count = self.count * treat_eff[1]
-        if self.get_stage() in ['Pa1']:
-            self.count = self.count * treat_eff[2]
-        if self.get_stage() in ['Pa2']:
-            self.count = self.count * treat_eff[3]
-        if self.get_stage() in ['Adult']:
-            self.count = self.count * treat_eff[4]
-        if self.get_stage() in ['Adult_gravid']:
-            self.count = self.count * treat_eff[5]
-
-    def Slice(self, treat_eff):
-        if self.get_stage() in ['Ch1']:
-            self.count = self.count * treat_eff[0]
-        if self.get_stage() in ['Ch2']:
-            self.count = self.count * treat_eff[1]
-        if self.get_stage() in ['Pa1']:
-            self.count = self.count * treat_eff[2]
-        if self.get_stage() in ['Pa2']:
-            self.count = self.count * treat_eff[3]
-        if self.get_stage() in ['Adult']:
-            self.count = self.count * treat_eff[4]
-        if self.get_stage() in ['Adult_gravid']:
-            self.count = self.count * treat_eff[5]
-
     def treatment(self, treat_eff):
         '''
         do a treatment on this louse
