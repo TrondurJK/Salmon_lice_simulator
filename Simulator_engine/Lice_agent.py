@@ -74,71 +74,11 @@ class Lice_agent:
         Hendan kodan koyrur tá ið treatmentX verður gjørd
         '''
 
-    def TreatmentY(self, treat_eff):
-        if self.get_stage() in ['Ch1']:
-            self.count = self.count * treat_eff[0]
-        if self.get_stage() in ['Ch2']:
-            self.count = self.count * treat_eff[1]
-        if self.get_stage() in ['Pa1']:
-            self.count = self.count * treat_eff[2]
-        if self.get_stage() in ['Pa2']:
-            self.count = self.count * treat_eff[3]
-        if self.get_stage() in ['Adult']:
-            self.count = self.count * treat_eff[4]
-        if self.get_stage() in ['Adult_gravid']:
-            self.count = self.count * treat_eff[5]
-
-    def TreatmentX(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult','Adult_gravid']:
-            self.count = self.count * 0.30
-
-    def Slice(self, treat_eff):
-        if self.get_stage() in ['Ch1']:
-            self.count = self.count * treat_eff[0]
-        if self.get_stage() in ['Ch2']:
-            self.count = self.count * treat_eff[1]
-        if self.get_stage() in ['Pa1']:
-            self.count = self.count * treat_eff[2]
-        if self.get_stage() in ['Pa2']:
-            self.count = self.count * treat_eff[3]
-        if self.get_stage() in ['Adult']:
-            self.count = self.count * treat_eff[4]
-        if self.get_stage() in ['Adult_gravid']:
-            self.count = self.count * treat_eff[5]
-
-    def H2O2(self):
-        if self.get_stage() in ['Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.3
-        if self.get_stage() in ['Ch1', 'Ch2']:
-            self.count = self.count * 0.80
-
-    def Salmosan(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.85
-
-    def Azametiphos(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.45
-
-    def Diflubenzuron(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.95
-
-    def Pyretroid(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.80
-
-    def Pyretroid_Azametiphos(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.80
-
-    def FV(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.60
-
-    def Optilicer(self):
-        if self.get_stage() in ['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult']:
-            self.count = self.count * 0.45
+    def treatment(self, treat_eff):
+        '''
+        do a treatment on this louse
+        '''
+        self.count *= treat_eff
 
 class Lice_agent_f(Lice_agent):
 

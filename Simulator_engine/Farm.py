@@ -1,7 +1,9 @@
 from .Lice_agent import Lice_agent_f, Lice_agent_m
+from .Planktonic_agent import Planktonic_agent
+from .Treatments import Treatments_control
+
 import numpy as np
 from scipy.interpolate import interp1d
-from .Planktonic_agent import Planktonic_agent
 import pandas as pd
 from matplotlib import dates
 
@@ -11,14 +13,14 @@ class Farm:
     '''
     count = 1  #  ein countari til at hjálpa við at geva farminum navn
     treat_id = 1
-    def __init__(self, time,delta_time, fish_count = 1_000_000, L_0=0.2, name=None, farm_start=0,
+    def __init__(self, time, delta_time, fish_count = 1_000_000, L_0=0.2, name=None, farm_start=0,
                  prod_len=420_000, fallow=10000, prod_cyc = 0, treatments=None,
                  treatment_type = None, NumTreat=0, treat_eff=np.array([[]]),
                  weight = 0.2, lusateljingar=[], fish_count_history = None,temperature=None,
                  temperature_Average=None,CF_data =None,biomass_data =None,initial_start=None,
                  cleanEff =None,lice_mortality=None,surface_ratio_switch=False,
                  use_cleaner_F_update=False, seasonal_treatment_treashold=False,
-                 treatment_period = 1):
+                 treatment_period = None, is_food=None):
         '''
         :params:
             time            Tíðin tá ið farmin verður gjørd
@@ -69,16 +71,17 @@ class Farm:
         self.__fordeiling__ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.prod_cyc = prod_cyc
         self.treatment = treatments
-        self.SliceON =-1 # -1 merkir at Slice ella Foodtreatment aðrar treatments ikk eru ON. >= 0 eru ON
-        self.NumTreat = NumTreat
-        self.treatment_type = treatment_type
-        self.treat_eff = treat_eff
+
+        if isinstance(treatments, Treatments_control):
+            self.treat = treatments
+        else:
+            self.treat = Treatments_control(treatments, NumTreat, treatment_type, treat_eff, treatment_period, is_food=is_food)
+
         self.num_treat_tjek = np.alen(treatments)-1
         dofy = np.arange(0, 366)
         diff_treat = np.append(dofy[0:int(len(dofy)/2)]*0+20,dofy[int(len(dofy)/2):]*0+80)
         self.diff_treatment = [dofy,diff_treat]
         self.num_of_treatments = 0
-        self.treatment_period = treatment_period
         self.prod_len_tjek = len(self.prod_len)
         self.done = False
         self.weight = weight
@@ -133,6 +136,7 @@ class Farm:
         self.seasonal_treatment_treashold = seasonal_treatment_treashold
         self.cleaner_death = 0
         self.cleaner_death_ratio = 1
+        self.time_to_next_treat = 0
 
     def update_temp(self):
         self.dayofyear = pd.to_datetime(dates.num2date(self.time+self.initial_start)).dayofyear
@@ -221,7 +225,13 @@ class Farm:
             if self.prod_cyc >= self.prod_len_tjek:
                 self.done = True
 
-        self.apply_Treat()
+        if self.time_to_next_treat< self.delta_time:
+            make_treat = self.treat.apply_Treat(self.time, self.delta_time)
+            if make_treat[0]:
+                self.avlusing(make_treat[1])
+            self.time_to_next_treat = make_treat[2]
+        else:
+            self.time_to_next_treat -= self.delta_time
 
         #update the distrubution
         if self.prod_time<0:
@@ -230,70 +240,24 @@ class Farm:
         else:
             self.get_fordeiling(calculate=True)
 
-        if self.fish_count!=0:
-            if self.seasonal_treatment_treashold:
-                relevant_treatment = self.diff_treatment[1][self.diff_treatment[0]==self.dayofyear]
-                if np.sum([self.get_fordeiling()[4:6]]) / self.fish_count > relevant_treatment: # OOurt ther sum sigur nær tað er hvat í løbi av árinum
-                    self.avlusing('TreatmentX', 1, 1, self.temp)
-                    self.num_of_treatments += 1
-            else:
-                if np.sum([self.get_fordeiling()[4],self.get_fordeiling()[5]]) / self.fish_count > 60:
-                    self.avlusing('TreatmentX', 1, 1, self.temp)
-
-
-    def avlusing(self, slag, NumTreat, consentration, temp):
+    def avlusing(self, treat_eff):
         '''
-        Hvat sker tá ið tað verður avlúsa
-        :params:
-        slag            Hvat fyri slag av avlúsing er talan um
-        consentration   Hvussu ógvuslig er avlúsingin
-        temp            Hvat er havtempraturin
-        -------------------
-        slag = 'X' er ein viðgerð sum drepur 95% av øllum føstum lúsum
+        apply a treatment to all the lice
+        params : treat_eff is a list (of lenght 6) off big proportion of the lice survive in
+                            in the order of [Ch1, Ch2, Pa1, Pa2, Adult, Adult_gravid]
         '''
 
-        if slag == 'TreatmentY':
-            for lice_slag_f in self.lice_f.values():
-                for mylice_f in lice_slag_f:
-                    mylice_f.TreatmentY(self.treat_eff[:, NumTreat])
+        for stage, eff in zip(['Ch1', 'Ch2', 'Pa1', 'Pa2', 'Adult'], treat_eff):
+            for mylice_f in self.lice_f.get(stage, []):
+                mylice_f.treatment(eff)
 
-            for lice_slag_m in self.lice_m.values():
-                for mylice_m in lice_slag_m:
-                    mylice_m.TreatmentY(self.treat_eff[:, NumTreat])
+            for mylice_m in self.lice_m.get(stage, []):
+                mylice_m.treatment(eff)
 
-            self.adultlice_f.TreatmentY(self.treat_eff[:, NumTreat])
-            self.adultlice_m.TreatmentY(self.treat_eff[:, NumTreat])
-        # ==========================================
-        elif slag == "TreatmentX":
-            #TODO ger hettar fyri alt
-            for lice_slag_f in self.lice_f.values():
-                for mylice_f in lice_slag_f:
-                    mylice_f.TreatmentX()
+        self.adultlice_f.treatment(treat_eff[5])
+        self.adultlice_m.treatment(treat_eff[4])
 
-            for lice_slag_m in self.lice_m.values():
-                for mylice_m in lice_slag_m:
-                    mylice_m.TreatmentX()
-
-            self.adultlice_f.TreatmentX()
-            self.adultlice_m.TreatmentX()
-
-        elif slag == "Slice":
-            treat_eff = 1-((1-self.treat_eff[:, NumTreat]))*self.delta_time #1-(1-0.95)*1
-
-            for lice_slag_f in self.lice_f.values():
-                for mylice_f in lice_slag_f:
-                    mylice_f.Slice(treat_eff)
-
-            for lice_slag_m in self.lice_m.values():
-                for mylice_m in lice_slag_m:
-                    mylice_m.Slice(treat_eff)
-
-            self.adultlice_f.Slice(treat_eff)
-            self.adultlice_m.Slice(treat_eff)
-        else:
-            raise NotImplementedError
-
-    def get_fordeiling(self, calculate=False,fallow = 0):
+    def get_fordeiling(self, calculate=False, fallow=0):
         '''
         Gevur ein lista av teimum forskelligu stages
         :params:
@@ -472,27 +436,6 @@ class Farm:
         #  make the old lice objects 
         self.adultlice_f = Lice_agent_f(self.time, 0, 1000,self.lice_mortality, stage='Adult_gravid')
         self.adultlice_m = Lice_agent_m(self.time, 0, 1000, self.lice_mortality, stage='Adult')
-
-    def apply_Treat(self):
-        if self.NumTreat<=self.num_treat_tjek:
-            if self.time > self.treatment[self.NumTreat]: # and self.treatment[self.NumTreat]>0:
-                if self.treatment[self.NumTreat]>0:
-                    if self.treatment_type[self.NumTreat] in ['FoodTreatment:', 'Emamectin', 'Slice']:
-                        self.NumTreat_slice = self.NumTreat
-                        self.avlusing('Slice',self.NumTreat_slice, 1, self.temp)
-                        self.SliceON = self.treatment_period # length of treatment effect
-                    else:
-                        self.avlusing('TreatmentY', self.NumTreat, 1, self.temp)
-
-                self.NumTreat += 1
-
-            elif np.isnan(self.treatment[self.NumTreat]):
-                self.NumTreat += 1
-
-        if self.SliceON >= 0:
-            self.avlusing('Slice', self.NumTreat_slice, 1, self.temp)
-
-            self.SliceON += -self.delta_time
 
     def insert_treatment(self, treatment_list, treatment_eff):
         assert len(treatment_eff) == len(treatment_list)
