@@ -168,6 +168,7 @@ class Treatments_control:
                     )
                 else:
                     eff *= self.current_treat.eff
+                    no_treat = False
 
                 self.NumTreat += 1
                 try:
