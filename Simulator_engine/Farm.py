@@ -225,6 +225,10 @@ class Farm:
             if self.prod_cyc >= self.prod_len_tjek:
                 self.done = True
 
+        #  if fish number is zero in a production lice are at the end of a cycle
+        if self.fish_count == 0:
+            self.reset_lice()
+
         if self.time_to_next_treat< self.delta_time:
             make_treat = self.treat.apply_Treat(self.time, self.delta_time)
             if make_treat[0]:
