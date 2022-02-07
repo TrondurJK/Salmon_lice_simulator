@@ -3,7 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from Simulator_engine.Farm import Farm
 from Simulator_engine.System import System
-from Simulator_engine.run_sim_test import init_run_sim
+from Simulator_engine.run_sim import init_run_sim
 import time
 
 
@@ -17,7 +17,7 @@ stop_time = 1000
 #======= make matrix to days of year =======
 Con_matrix = np.zeros((len(farm_names),len(farm_names),366,40))
 interanl_con = 0.005 #0.02
-external_con = 0.00000
+external_con = 0.0000
 delay = 5
 for index,i in enumerate(farm_names):
     Con_matrix = Con_matrix+external_con
@@ -79,7 +79,7 @@ Farm(0,delta_time,1_000_000,
      treatment_type = treatment_type[index],                                              # Inputs type of treatments
      NumTreat=0,
      treat_eff=np.array(Treatment_array[index]),
-     fish_count_history = [np.arange(0,1003), np.arange(0,1003)*0+500_000],   # date, number of fish here set to 500_000 fish
+     fish_count_history = [np.arange(0,1000), np.arange(0,1000)*0+500_000],   # date, number of fish here set to 500_000 fish
      temperature = temperature,
      CF_data = np.array(wrasse_data[index]),
      biomass_data = [[0,stop_time],np.array([1,1])],
@@ -134,7 +134,7 @@ ax.plot(x,y_AF_farm[0],'r-',label='Kynsbúnar kvennlús',linewidth = 3)
 #ax[0,0].plot(x,y_AG_farm[0],'k-',label='AF$_{egg}$',linewidth = 3)
 #ax[0,0].set_xlabel('time (days since stocking)',fontsize=15)
 #ax[0,0].plot(date,temp/10,'b-',label='Temperature/10')
-ax.plot([100,100],[0,max(y_Ch_farm[1])],'k--',label='Viðgerð: eff. 90%',linewidth = 3)
+#ax.plot([100,100],[0,max(y_Ch_farm[1])],'k--',label='Viðgerð: eff. 90%',linewidth = 3)
 ax.set_ylabel('lice/salmon',fontsize =20)
 ax.set_xlabel('time (days since stocking)',fontsize =20)
 
@@ -148,7 +148,7 @@ ax.legend(loc ="upper left",fontsize =15)
 manager = plt.get_current_fig_manager()
 #manager.window.showMaximized()
 #plt.tight_layout()
-#plt.show()
+
 #fig.savefig('Figure_treatments_temp_10_4.pdf')
 
 fig, ax = plt.subplots()

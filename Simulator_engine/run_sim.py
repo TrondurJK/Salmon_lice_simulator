@@ -1,8 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from matplotlib import dates
-
 def init_run_sim(args):
     return run_sim(*args)
 
@@ -31,13 +26,14 @@ def run_sim(delta_time, stop_time, system):
     while t < stop_time:
         t += delta_time  # TODO hettar skal sikkurt flytast inn í nauplii
 
-        system.update(t) #+inital_start)
+        if t== 999.5:
+            stop = 0
+
+        system.update(t)
 
         for farm, stages_f,stages_m, index, fish_count_save, clean_fish_save, attached_save,Num_of_treatment in \
                 zip(farms, stages_f_list, stages_m_list, indexis, fish_count_save_list, clean_fish_save_list,attached_save_list,Num_of_treatment_list):
             Ch1_f, Ch2_f, Pa1_f, Pa2_f, A_f, AG_f,Ch1_m, Ch2_m, Pa1_m, Pa2_m, A_m = [x / max(1, farm.fish_count) for x in farm.get_fordeiling()]
-
-            #print(system.Attached_update(t))
 
             index.append(farm.time)
             stages_f[0].append(Ch1_f)
