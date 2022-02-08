@@ -77,7 +77,6 @@ Farm(0,delta_time,1_000_000,
      fallow = [60,60],
      treatments = np.array(treat_date[index]),                              # Inputs the dates treatments are preformed
      treatment_type = treatment_type[index],                                              # Inputs type of treatments
-     NumTreat=0,
      treat_eff=np.array(Treatment_array[index]),
      fish_count_history = [np.arange(0,1000), np.arange(0,1000)*0+500_000],   # date, number of fish here set to 500_000 fish
      temperature = temperature,
@@ -87,7 +86,7 @@ Farm(0,delta_time,1_000_000,
      cleanEff =0.3,
      lice_mortality=[0.01,0.01,0.02,0.02,0.02,0.02],
      surface_ratio_switch=0,
-     treatment_period = 100
+     treatment_period = 10
     )
 for index,farm_id in enumerate(farm_names)
 ]
