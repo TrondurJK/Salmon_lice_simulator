@@ -63,13 +63,16 @@ wrasse_data =[[0, 0],[0, 0]],\
 #============== temperature ==================
 date = np.arange(0, stop_time)
 temp = np.sin(date / (365 / (np.pi * 2))+450) * 2 + 8.5
+
 #temp = temp*0+10
 plt.plot(date,temp)
 #plt.show()
 temperature = [date, temp]
 
 farms = [
-Farm(0,delta_time,1_000_000,
+Farm(
+     delta_time,
+     1_000_000,
      L_0=300,                                                             # number of larvea per day
      name=farm_names[index],
      farm_start=farm_start[index]-inital_start,

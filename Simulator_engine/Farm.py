@@ -1,3 +1,5 @@
+from numbers import Number
+
 from .Lice_agent import Lice_agent_f, Lice_agent_m
 from .Planktonic_agent import Planktonic_agent
 from .Treatments import Treatments_control
@@ -13,36 +15,44 @@ class Farm:
     '''
     count = 1  #  ein countari til at hjálpa við at geva farminum navn
     treat_id = 1
-    def __init__(self, time, delta_time, fish_count = 1_000_000, L_0=0.2, name=None, farm_start=0,
-                 prod_len=420_000, fallow=10000, prod_cyc = 0, treatments=None,
-                 treatment_type = None, treat_eff=np.array([[]]),
-                 weight = 0.2, lusateljingar=[], fish_count_history = None,temperature=None,
-                 temperature_Average=None,CF_data =None,biomass_data =None,initial_start=None,
-                 cleanEff =None,lice_mortality=None,surface_ratio_switch=False,
-                 use_cleaner_F_update=False, seasonal_treatment_treashold=False,
-                 treatment_period = None, is_food=None):
+    def __init__(self, delta_time=0.5, fish_count=200_000, L_0=2000, name=None, initial_start=0,
+                 farm_start=0, prod_len=420, fallow=[90], treatments=None,
+                 treatment_type=None,treatment_period = None, treatment_is_food=None, treat_eff=np.array([[]]), fish_count_history=None,
+                 temperature=None, mean_temprature=10,
+                 CF_data=None, cleanEff=1, lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02], 
+                 surface_ratio_switch=False, biomass_data=None):
         '''
         :params:
-            time            Tíðin tá ið farmin verður gjørd
-            fish_count      Hvussu nógvur fiskur er í farmini tá ið hon startar (count)
-            L_0             Extern smitta, (Lús per dag per fisk)
-            name            Hvat er navni á farmini um hettar ikki er sett verður tað sett fyri ein
-            farm_start      Nær startar productiónin (dagar frá t=0)
-            prod_len        Hvussu langur er hvør syklus (dagar)
-            fallow          Brakkleggjing (Hvussu leingi millum hvørja útsetan) (dagar)
-            prod_cyc        Hvat fyri cycul byrja vit vit við
-            treatments      Ein listi av datoion av treatments
-            treatment_type  Hvat fyri treatment verður brúkt
-            treat_eff       Ein matrix av treatment effiicies
-            lusateljingar   Ein listi sum sigur nar vit hava lúsateljingar
+            delta_time             Time step
+            fish_count             if fish_count_history is not spesified, the constant fish_count
+            L_0                    External infection (total amount of lice per day)
+            name                   name of the farm
+            initial_start          start timestep of the simplation (days)
+            farm_start             delay between initial_start and the start of the farm
+            prod_len               how long is the production (days)
+            fallow                 lenght of the fallowing period (days)
+            treatments             a list of treatments dates (days after initial_start)
+            treatment_type         if defined List[str] of same lenght as treatments
+            treatment_period       how long does the effect of the treatment last, if defined List[int] of same lenght as treatments
+            treatment_is_food      an list that specefies if the treatments are food based, if defined List[int] of same lenght as treatments
+            treat_eff              effientsy of the treatments on the 6 stages of lice (np.array of shape (6, len(treatments)))
+            fish_count_history     records of fish count ([List[int], List[int]], the first list is days after initial_start the sekend is fish_count)
+            temprature             records of temprature same structure as fish_count_history, if date is outsite of the range of the recurds it will be set to mean_temprature
+            mean_temprature        the standard value of the temprature if it is not set
+            CF_data                records of Cleaner fish same structure as fish_count_history
+            cleanEff               the effinsy of the cleaner fish
+            lice_mortality         mortalety of the 6 stages of lice (no diffrense between male and female)
+            surface_ratio_switch   boolian if we shall use surface_ratio for lice attacment (Experimental feature)
+            biomass_data           records of biomass fish same structure as fish_count_history (Experimental feature)
+
         '''
-        self.time = time
+        #  TODO figure out temprature
+        #  TODO follow self.time
+        self.time = initial_start
 
 
         self.delta_time = delta_time
-        self.fish_count_history = fish_count_history
         self.lice_mortality = lice_mortality
-        self.fish_count = fish_count
 
         self.reset_lice()
         self.plankton = Planktonic_agent(self.delta_time)
@@ -66,16 +76,18 @@ class Farm:
         else:
             self.name = name
         self.prod_len = prod_len
+        #  TODO there is somthing wrong with fallow
+        #  make it so that if fallow is a number the code does not break
         self.fallow = fallow
         self.prod_time = -farm_start
         self.__fordeiling__ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.prod_cyc = prod_cyc
+        self.prod_cyc = 0
         self.treatment = treatments
 
         if isinstance(treatments, Treatments_control):
             self.treat = treatments
         else:
-            self.treat = Treatments_control(treatments, treatment_type, treat_eff, treatment_period, is_food=is_food)
+            self.treat = Treatments_control(treatments, treatment_type, treat_eff, treatment_period, is_food=treatment_is_food)
 
         self.num_treat_tjek = np.alen(treatments)-1
         dofy = np.arange(0, 366)
@@ -84,43 +96,44 @@ class Farm:
         self.num_of_treatments = 0
         self.prod_len_tjek = len(self.prod_len)
         self.done = False
-        self.weight = weight
         self.W0 = 7 # maximum kg av laksinum
         self.K = 0.008  # growth rate í procent pr dag
-        self.fish_count_update = interp1d(
-            x = fish_count_history[0], # remember which is which this should be date of fish
-            y = fish_count_history[1], # remember which is which this should be number of fish
-            bounds_error = False,
-            fill_value = 0
-        )
 
-        if temperature_Average is None:
+        self.fish_count = fish_count
+        if fish_count_history:
+            self.fish_count_update = interp1d(
+                x = fish_count_history[0], # remember which is which this should be date of fish
+                y = fish_count_history[1], # remember which is which this should be number of fish
+                bounds_error = False,
+                fill_value = 0
+            )
+        else:
+            self.fish_count_update = lambda x: fish_count
+
+        if temperature:
             self.Temp_update = interp1d(
                 x = temperature[0], # remember which is which this should be date of fish
                 y = temperature[1], # remember which is which this should be number of fish
                 bounds_error = False,
-                fill_value = 0
+                fill_value = mean_temprature
             )
-            self.Temp_update_average = None
         else:
-            self.Temp_update_average = interp1d(
-                x = temperature_Average.day_of_year.values, # remember which is which this should be date of fish
-                y = temperature_Average.Temp.values, # remember which is which this should be number of fish
-                bounds_error = False,
-                fill_value = 0
-            )
-        self.CF_data = CF_data
-        self.use_cleaner_F_update = use_cleaner_F_update
-        if self.CF_data is not None:
+            self.Temp_update = lambda x: mean_temprature
+
+        if CF_data is not None:
             self.cleaner_count_update = interp1d(
                 x = CF_data[0], # remember which is which this should be date of fish
                 y = CF_data[1], # remember which is which this should be number of fish
                 bounds_error = False,
                 fill_value = 0
             )
+        else:
+            self.cleaner_count_update = lambda x: 0
+        self.CF_data = CF_data
+
         self.cleaner_fish = 0
         #  TODO what to do with cleanEff if there is no use for cleaner fish
-        self.cleanEff = cleanEff or 1
+        self.cleanEff = cleanEff
 
         self.surface_ratio_switch = surface_ratio_switch
         if self.surface_ratio_switch:
@@ -133,17 +146,12 @@ class Farm:
             )
         #  TODO if the controll of this is put into Farm watch out for the done flag
         self.initial_start = initial_start
-        self.seasonal_treatment_treashold = seasonal_treatment_treashold
         self.cleaner_death = 0
         self.cleaner_death_ratio = 1
         self.time_to_next_treat = 0
 
     def update_temp(self):
-        self.dayofyear = pd.to_datetime(dates.num2date(self.time+self.initial_start)).dayofyear
-        if self.Temp_update_average is None:
-            self.temp = self.Temp_update(self.time)
-        else:
-            self.temp=self.Temp_update_average(self.dayofyear)
+        self.temp = self.Temp_update(self.time)
 
     def update(self, attached=0):
         '''
@@ -320,12 +328,7 @@ class Farm:
 
     def updateCF(self):
         #  if there is no data for cleaner fish dont update it
-        if self.use_cleaner_F_update:
-            self.cleaner_fish += self.cleaner_F_update(self.time)
-        else:
-            self.cleaner_fish = self.cleaner_count_update(self.time)
-
-        self.cleaner_fish += -self.cleaner_fish*self.delta_time*0.005
+        self.cleaner_fish = self.cleaner_count_update(self.time)
 
         #  How many lice do cleaner fish eat in one delta time step (0.05 per day)
         self.cleaner_death = self.cleaner_fish * self.cleanEff *self.delta_time 
@@ -342,15 +345,6 @@ class Farm:
         else:
             self.cleaner_death_ratio = max([0.001,(1-self.cleaner_death /
                                                            sum_mobile_lice)])
-
-    def cleaner_F_update(self,time):
-        idx = np.where(np.logical_and(self.CF_data[0] > time - 0.001, self.CF_data[0] < time + 0.001))
-        if len(idx[0])>0:
-            out = np.sum(self.CF_data[1][idx[0][:]])
-            return 0 if np.isnan(out) else out
-        else:
-            return 0
-
     def update_lice(
         self,
         lice_young,
