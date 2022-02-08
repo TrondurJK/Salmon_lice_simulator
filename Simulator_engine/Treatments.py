@@ -61,9 +61,9 @@ class Treatments_control:
     A class to manige the treatments in a Farm
     '''
 
-    def __init__(self, treatments, NumTreat=0, treatment_type=None, treat_eff:np.array=None, treatment_period=None, is_food=None):
+    def __init__(self, treatments, treatment_type=None, treat_eff:np.array=None, treatment_period=None, is_food=None):
 
-        self.NumTreat = NumTreat
+        self.NumTreat = 0
         N = len(treatments)
         self.N = N
         self.num_treat_tjek = np.alen(treatments)

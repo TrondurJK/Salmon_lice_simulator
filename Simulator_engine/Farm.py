@@ -15,7 +15,7 @@ class Farm:
     treat_id = 1
     def __init__(self, time, delta_time, fish_count = 1_000_000, L_0=0.2, name=None, farm_start=0,
                  prod_len=420_000, fallow=10000, prod_cyc = 0, treatments=None,
-                 treatment_type = None, NumTreat=0, treat_eff=np.array([[]]),
+                 treatment_type = None, treat_eff=np.array([[]]),
                  weight = 0.2, lusateljingar=[], fish_count_history = None,temperature=None,
                  temperature_Average=None,CF_data =None,biomass_data =None,initial_start=None,
                  cleanEff =None,lice_mortality=None,surface_ratio_switch=False,
@@ -33,7 +33,6 @@ class Farm:
             prod_cyc        Hvat fyri cycul byrja vit vit við
             treatments      Ein listi av datoion av treatments
             treatment_type  Hvat fyri treatment verður brúkt
-            NumTreat        Hvat fyri treatment starta vit við
             treat_eff       Ein matrix av treatment effiicies
             lusateljingar   Ein listi sum sigur nar vit hava lúsateljingar
         '''
@@ -75,7 +74,7 @@ class Farm:
         if isinstance(treatments, Treatments_control):
             self.treat = treatments
         else:
-            self.treat = Treatments_control(treatments, NumTreat, treatment_type, treat_eff, treatment_period, is_food=is_food)
+            self.treat = Treatments_control(treatments, treatment_type, treat_eff, treatment_period, is_food=is_food)
 
         self.num_treat_tjek = np.alen(treatments)-1
         dofy = np.arange(0, 366)
