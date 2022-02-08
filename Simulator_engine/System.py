@@ -43,7 +43,7 @@ class System:
 
             smittarar.append(smitta_count)
 
-        dayofyear = self.farms[0].dayofyear
+        dayofyear = pd.to_datetime(dates.num2date(self.farms[0].time)).dayofyear
         attached_list =[]
         for i in range(0,len(self.farms)):
             a = self.c_matrix[:, i, dayofyear - 1, :]
