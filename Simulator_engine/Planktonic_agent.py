@@ -45,11 +45,9 @@ class Planktonic_agent:
             fill_value = 0
         )
 
-    def update(self, farm, temp):
+    def update(self, gravid_lice, temp):
 
-        #alle = (10 * farm.get_fordeiling()[4] * 0.5 / farm.fish_count) / (1 + 10 * farm.get_fordeiling()[4] * 0.5 / farm.fish_count)  # her manglar at deilast við tal av fiski
-        #self.smittu_count = np.vstack((self.smittu_count, [farm.get_fordeiling()[5] * self.interp_egg(temp) * (alle*0+1)*self.delta_time, 0]))
-        self.smittu_count = np.hstack(([farm.get_fordeiling()[5] * self.interp_egg(temp) * self.delta_time], self.smittu_count[:-1]))
+        self.smittu_count = np.hstack(([gravid_lice * self.interp_egg(temp) * self.delta_time], self.smittu_count[:-1]))
 
-        smittu_count_out_test = np.dot(self.A, self.smittu_count)
-        return smittu_count_out_test
+        smittu_count_out = np.dot(self.A, self.smittu_count)
+        return smittu_count_out

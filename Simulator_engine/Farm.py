@@ -46,6 +46,7 @@ class Farm:
         self.fish_count = fish_count
 
         self.reset_lice()
+        self.plankton = Planktonic_agent(self.delta_time)
 
         if len(lice_mortality) >= 6:
             pass
@@ -432,7 +433,6 @@ class Farm:
             'Pa1': [],
             'Pa2': [],
         }
-        self.plankton = Planktonic_agent(self.delta_time)
         #  make the old lice objects 
         self.adultlice_f = Lice_agent_f(self.time, 0, 1000,self.lice_mortality, stage='Adult_gravid')
         self.adultlice_m = Lice_agent_m(self.time, 0, 1000, self.lice_mortality, stage='Adult')
