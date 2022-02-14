@@ -8,7 +8,7 @@ import time
 
 
 #========= Farms of interest ===============
-farm_names =['farm 1','farm 2','farm 3','farm 4']
+farm_names =['Farm_1','Farm_2','Farm_3','Farm_4']
 farm_start =[0,100,200,300]
 #====== Fá loopið at koyra sum tað skal ====
 inital_start = 0
@@ -108,44 +108,71 @@ koyringar =[]
 koyringar.append((delta_time, stop_time, system))
 
 # ========== main loop======================
-out = init_run_sim(koyringar[0])
+Sim_out = init_run_sim(koyringar[0])
 
 end = time.time()
 print(end - start)
 #================= plot stuff ==============
-x = out[0]
-y_AG_farm = []
-y_AF_farm = []
-y_PA_farm = []
-y_Ch_farm = []
-for index,i in enumerate(farm_names):
-    #y_AG_farm.append(np.array(out[1][index][5]))
-    y_AF_farm.append(np.array(out[1][index][4]) + np.array(out[1][index][5] ))
-    y_PA_farm.append(np.array(out[1][index][2]) + np.array(out[1][index][3]) + np.array(out[2][index][2] +np.array(out[2][index][3]) + np.array(out[2][index][4]) ))
+time = Sim_out.Farm_0.Date
 
-    y_Ch_farm.append(np.array(out[1][index][0]) + np.array(out[1][index][1] ))
 
-Nfish = out[2]
-#fig, ax = plt.subplots(1,1,gridspec_kw = {'wspace':0.1, 'hspace':0.1})
-fig, ax = plt.subplots()
-#plt.xticks(xvalues)
 
-ax.plot(x,y_Ch_farm[0],'g-',label='Chalimus',linewidth = 3)
-ax.plot(x,y_PA_farm[0],'y-',label='PA',linewidth = 3)
-ax.plot(x,y_AF_farm[0],'r-',label='Kynsbúnar kvennlús',linewidth = 3)
-#ax[0,0].plot(x,y_AG_farm[0],'k-',label='AF$_{egg}$',linewidth = 3)
-#ax[0,0].set_xlabel('time (days since stocking)',fontsize=15)
-#ax[0,0].plot(date,temp/10,'b-',label='Temperature/10')
-#ax.plot([100,100],[0,max(y_Ch_farm[1])],'k--',label='Viðgerð: eff. 90%',linewidth = 3)
-ax.set_ylabel('lice/salmon',fontsize =20)
-ax.set_xlabel('time (days since stocking)',fontsize =20)
+def plot_farm_all_stages(farm_name):
+    Farm_data = Sim_out.__dict__[farm_name]
+    sessile_lice = Farm_data.CH_1_f + Farm_data.CH_2_f + Farm_data.CH_1_m + Farm_data.CH_2_m
+    PAAM_lice = Farm_data.PA_1_f + Farm_data.PA_2_f + Farm_data.PA_1_m + Farm_data.PA_2_m + Farm_data.AM
+    AF_lice = Farm_data.AF
+    AF_gravid_lice = Farm_data.AF_gravid
+    fig, ax = plt.subplots()
 
-ax.set_ylim(0,1)
-ax.set_xlim(0,1000)
-ax.tick_params(axis='x', labelsize=15)
-ax.tick_params(axis='y', labelsize=15)
-#ax[0,0].xaxis.set_visible(False)
-ax.legend(loc ="upper left",fontsize =15)
+    ax.plot(time, sessile_lice, 'g-', label='Chalimus', linewidth=3)
+    ax.plot(time, PAAM_lice, 'y-', label='PA', linewidth=3)
+    ax.plot(time, AF_lice+AF_gravid_lice, 'r-', label='Kynsbúnar kvennlús', linewidth=3)
+    #ax.plot(time, AF_gravid_lice, 'k-', label='AF$_{egg}$', linewidth=3)
+    ax.set_ylabel('lice/salmon', fontsize=20)
+    ax.set_xlabel('time (days since stocking)', fontsize=20)
+
+    ax.set_ylim(0, 1)
+    ax.set_xlim(0, 1000)
+    ax.tick_params(axis='x', labelsize=15)
+    ax.tick_params(axis='y', labelsize=15)
+    ax.legend(loc="upper left", fontsize=15)
+    plt.show()
+    return
+
+
+def plot_all_farms():
+    Farm_data = Sim_out
+    sessile_lice = Farm_data.CH_1_f + Farm_data.CH_2_f + Farm_data.CH_1_m + Farm_data.CH_2_m
+    PAAM_lice = Farm_data.PA_1_f + Farm_data.PA_2_f + Farm_data.PA_1_m + Farm_data.PA_2_m + Farm_data.AM
+    AF_lice = Farm_data.AF
+    AF_gravid_lice = Farm_data.AF_gravid
+    fig, ax = plt.subplots()
+    # plt.xticks(xvalues)
+
+    ax.plot(time, sessile_lice, 'g-', label='Chalimus', linewidth=3)
+
+    ax.plot(time, PAAM_lice, 'y-', label='PA', linewidth=3)
+    ax.plot(time, AF_lice+AF_gravid_lice, 'r-', label='Kynsbúnar kvennlús', linewidth=3)
+    #ax.plot(time, AF_gravid_lice, 'k-', label='AF$_{egg}$', linewidth=3)
+    # ax[0,0].set_xlabel('time (days since stocking)',fontsize=15)
+    # ax[0,0].plot(date,temp/10,'b-',label='Temperature/10')
+    # ax.plot([100,100],[0,max(y_Ch_farm[1])],'k--',label='Viðgerð: eff. 90%',linewidth = 3)
+    ax.set_ylabel('lice/salmon', fontsize=20)
+    ax.set_xlabel('time (days since stocking)', fontsize=20)
+
+    ax.set_ylim(0, 1)
+    ax.set_xlim(0, 1000)
+    ax.tick_params(axis='x', labelsize=15)
+    ax.tick_params(axis='y', labelsize=15)
+    # ax[0,0].xaxis.set_visible(False)
+    ax.legend(loc="upper left", fontsize=15)
+    plt.show()
+    return
+
+
+plot_farm_all_stages("Farm_0")
+plot_all_farms()
 
 manager = plt.get_current_fig_manager()
 #manager.window.showMaximized()
@@ -175,3 +202,5 @@ ax3.set_xlim(0,1000)
 
 
 plt.show()
+
+
