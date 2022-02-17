@@ -105,7 +105,7 @@ print("engine start")
 
 koyringar =[]
 
-koyringar.append((delta_time, stop_time, system))
+koyringar.append((delta_time,inital_start, stop_time, system))
 
 # ========== main loop======================
 Sim_out = init_run_sim(koyringar[0])
@@ -118,6 +118,7 @@ time = Sim_out.Farm_0.Date
 
 
 def plot_farm_all_stages(farm_name):
+
     Farm_data = Sim_out.__dict__[farm_name]
     sessile_lice = Farm_data.CH_1_f + Farm_data.CH_2_f + Farm_data.CH_1_m + Farm_data.CH_2_m
     PAAM_lice = Farm_data.PA_1_f + Farm_data.PA_2_f + Farm_data.PA_1_m + Farm_data.PA_2_m + Farm_data.AM
@@ -137,36 +138,41 @@ def plot_farm_all_stages(farm_name):
     ax.tick_params(axis='x', labelsize=15)
     ax.tick_params(axis='y', labelsize=15)
     ax.legend(loc="upper left", fontsize=15)
-    plt.show()
+
     return
 
 
 def plot_all_farms():
-    Farm_data = Sim_out
-    sessile_lice = Farm_data.CH_1_f + Farm_data.CH_2_f + Farm_data.CH_1_m + Farm_data.CH_2_m
-    PAAM_lice = Farm_data.PA_1_f + Farm_data.PA_2_f + Farm_data.PA_1_m + Farm_data.PA_2_m + Farm_data.AM
-    AF_lice = Farm_data.AF
-    AF_gravid_lice = Farm_data.AF_gravid
+
+    idx_farms = np.flatnonzero(np.core.defchararray.find(Sim_out.__dir__(), "Farm") != -1)
+
     fig, ax = plt.subplots()
-    # plt.xticks(xvalues)
 
-    ax.plot(time, sessile_lice, 'g-', label='Chalimus', linewidth=3)
+    for idx in idx_farms:
+        farm_names = Sim_out.__dir__()[idx]
+        Farm_data = Sim_out.__dict__[farm_names]
+        sessile_lice = Farm_data.CH_1_f + Farm_data.CH_2_f + Farm_data.CH_1_m + Farm_data.CH_2_m
+        PAAM_lice = Farm_data.PA_1_f + Farm_data.PA_2_f + Farm_data.PA_1_m + Farm_data.PA_2_m + Farm_data.AM
+        AF_lice = Farm_data.AF
+        AF_gravid_lice = Farm_data.AF_gravid
 
-    ax.plot(time, PAAM_lice, 'y-', label='PA', linewidth=3)
-    ax.plot(time, AF_lice+AF_gravid_lice, 'r-', label='Kynsbúnar kvennlús', linewidth=3)
-    #ax.plot(time, AF_gravid_lice, 'k-', label='AF$_{egg}$', linewidth=3)
-    # ax[0,0].set_xlabel('time (days since stocking)',fontsize=15)
-    # ax[0,0].plot(date,temp/10,'b-',label='Temperature/10')
-    # ax.plot([100,100],[0,max(y_Ch_farm[1])],'k--',label='Viðgerð: eff. 90%',linewidth = 3)
-    ax.set_ylabel('lice/salmon', fontsize=20)
-    ax.set_xlabel('time (days since stocking)', fontsize=20)
 
-    ax.set_ylim(0, 1)
-    ax.set_xlim(0, 1000)
-    ax.tick_params(axis='x', labelsize=15)
-    ax.tick_params(axis='y', labelsize=15)
-    # ax[0,0].xaxis.set_visible(False)
-    ax.legend(loc="upper left", fontsize=15)
+
+
+        #ax.plot(time, sessile_lice, 'g-', label='Chalimus', linewidth=3)
+
+        #ax.plot(time, PAAM_lice, 'y-', label='PA', linewidth=3)
+        ax.plot(time, AF_lice+AF_gravid_lice, '-', label=farm_names, linewidth=3)
+
+        ax.set_ylabel('lice/salmon', fontsize=20)
+        ax.set_xlabel('time (days since stocking)', fontsize=20)
+
+        ax.set_ylim(0, 1)
+        ax.set_xlim(0, 1000)
+        ax.tick_params(axis='x', labelsize=15)
+        ax.tick_params(axis='y', labelsize=15)
+
+        ax.legend(loc="upper left", fontsize=15)
     plt.show()
     return
 

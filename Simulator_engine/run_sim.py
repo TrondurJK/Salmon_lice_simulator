@@ -9,7 +9,7 @@ def init_run_sim(args):
     return run_sim(*args)
 
 
-def run_sim(delta_time, stop_time, system):
+def run_sim(delta_time,inital_start, stop_time, system):
     farms = system.farms
     Num_of_treatment_list = [[] for _ in farms]
     stages_f_list = [
@@ -30,7 +30,7 @@ def run_sim(delta_time, stop_time, system):
 
     indexis = [[] for _ in farms]
     unique_id = []
-    t = -delta_time
+    t = inital_start-delta_time
     sim = Sim()
     while t < stop_time:
         t += delta_time  # TODO hettar skal sikkurt flytast inn í nauplii
@@ -60,7 +60,7 @@ def run_sim(delta_time, stop_time, system):
 
             Num_of_treatment.append(farm.num_of_treatments)
             unique_id.append(id)
-    df = []
+
     for id in np.unique(unique_id):
         d = {
                 "Date":index,
@@ -80,12 +80,8 @@ def run_sim(delta_time, stop_time, system):
 
                 "CF": clean_fish_save_list[id]
         }
-        #df = {pd.Series(d)}
-        #listi.append("Farm_%s" % id)
-        sim.__dict__["Farm_%s" % id] = pd.DataFrame(data=d)
 
-        #df.append({"Farm_%s" % id: pd.DataFrame(data=d)})
-    #df_sim =pd.DataFrame(data=df)
+        sim.__dict__["Farm_%s" % id] = pd.DataFrame(data=d)
     return sim
 
 
