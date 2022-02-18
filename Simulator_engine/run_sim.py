@@ -31,6 +31,7 @@ def run_sim(delta_time,inital_start, stop_time, system):
     indexis = [[] for _ in farms]
     unique_id = []
     t = inital_start-delta_time
+
     sim = Sim()
     while t < stop_time:
         t += delta_time  # TODO hettar skal sikkurt flytast inn í nauplii
