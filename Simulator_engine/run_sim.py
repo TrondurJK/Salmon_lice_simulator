@@ -65,6 +65,7 @@ def run_sim(delta_time,inital_start, stop_time, system):
         d = {
                 "Date":index,
                 "Nfish": fish_count_save_list[id],
+                "Temp": temp_save_list[id],
                 "AF_gravid": stages_f_list[id][5],
                 "AF": stages_f_list[id][4],
                 "PA_2_f": stages_f_list[id][3],
