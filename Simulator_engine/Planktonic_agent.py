@@ -39,8 +39,8 @@ class Planktonic_agent:
                     start_iter = end
 
         self.interp_egg = interp1d(
-            x = [6,12,18], # remember which is which this should be date of fish
-            y = [28.9,80.9,90.8], # remember which is which this should be number of fish
+            x=[3, 5, 6, 12, 18, 20], # remember which is which this should be date of fish
+            y=[8.4, 26.6, 28.9, 80.9, 90.8, 80], # remember which is which this should be number of fish
             bounds_error = False,
             fill_value = 0
         )
