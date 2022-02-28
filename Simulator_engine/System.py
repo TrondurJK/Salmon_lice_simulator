@@ -7,7 +7,7 @@ class System:
     '''
     Class of whole system
     '''
-    def __init__(self, farms, c_matrix):
+    def __init__(self, farms, c_matrix,dayofyear_0=True):
         '''
         :params:
         farms               Ein listi av farms sum eru í systeminum
@@ -18,6 +18,8 @@ class System:
 
         self.farms = farms
         self.c_matrix = np.array(c_matrix)
+        self.dayofyear_0 = dayofyear_0
+        self.initial_start = farms[0].initial_start
         shape = self.c_matrix.shape
         if len(self.c_matrix.shape):
             assert shape[0] == shape[1]
@@ -43,9 +45,14 @@ class System:
 
             smittarar.append(smitta_count)
 
-        dayofyear = pd.to_datetime(dates.num2date(self.farms[0].time)).dayofyear
+        if self.dayofyear_0:
+            dayofyear = pd.to_datetime(dates.num2date(self.farms[0].time)).dayofyear
+        else:
+            dayofyear = int(self.farms[0].time-self.initial_start)
+
         attached_list =[]
         for i in range(0,len(self.farms)):
+            #print(dayofyear)
             a = self.c_matrix[:, i, dayofyear - 1, :]
             b = np.array(smittarar)
 
