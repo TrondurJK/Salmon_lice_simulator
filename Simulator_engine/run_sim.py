@@ -61,8 +61,6 @@ def run_sim(delta_time,inital_start, stop_time, system):
             treat_counter_save.append(farm.treat_counter)
 
             unique_id.append(id)
-            print(farm.treat_counter,farm.name)
-
 
     for id in np.unique(unique_id):
         d = {
