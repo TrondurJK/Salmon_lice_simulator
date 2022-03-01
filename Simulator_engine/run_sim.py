@@ -27,19 +27,19 @@ def run_sim(delta_time,inital_start, stop_time, system):
     temp_save_list = [[] for _ in farms]
     clean_fish_save_list = [[] for _ in farms]
     attached_save_list = [[] for _ in farms]
+    treat_counter_save_list = [[] for _ in farms]
 
     indexis = [[] for _ in farms]
     unique_id = []
     t = inital_start-delta_time
-
     sim = Sim()
     while t < stop_time:
         t += delta_time  # TODO hettar skal sikkurt flytast inn í nauplii
 
         system.update(t)
 
-        for id,(farm, stages_f,stages_m, index, fish_count_save,temp_save, clean_fish_save, attached_save,Num_of_treatment) in \
-                enumerate(zip(farms, stages_f_list, stages_m_list, indexis, fish_count_save_list,temp_save_list, clean_fish_save_list,attached_save_list,Num_of_treatment_list)):
+        for id,(farm, stages_f,stages_m, index, fish_count_save,temp_save, clean_fish_save, attached_save,treat_counter_save) in \
+                enumerate(zip(farms, stages_f_list, stages_m_list, indexis, fish_count_save_list,temp_save_list, clean_fish_save_list,attached_save_list,treat_counter_save_list)):
             Ch1_f, Ch2_f, Pa1_f, Pa2_f, A_f, AG_f,Ch1_m, Ch2_m, Pa1_m, Pa2_m, A_m = [x / max(1, farm.fish_count) for x in farm.get_fordeiling()]
 
             index.append(farm.time)
@@ -58,8 +58,8 @@ def run_sim(delta_time,inital_start, stop_time, system):
             fish_count_save.append(farm.fish_count)
             temp_save.append(farm.temp)
             clean_fish_save.append(farm.cleaner_fish)
+            treat_counter_save.append(farm.treat_counter)
 
-            Num_of_treatment.append(farm.num_of_treatments)
             unique_id.append(id)
 
     for id in np.unique(unique_id):
@@ -80,7 +80,8 @@ def run_sim(delta_time,inital_start, stop_time, system):
                 "CH_2_m": stages_m_list[id][1],
                 "CH_1_m": stages_m_list[id][0],
 
-                "CF": clean_fish_save_list[id]
+                "CF": clean_fish_save_list[id],
+                "Ntreatments": treat_counter_save_list[id],
         }
 
         sim.__dict__["Farm_%s" % id] = pd.DataFrame(data=d)

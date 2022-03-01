@@ -199,3 +199,6 @@ class Treatments_control:
         if no_treat:
             return False, None, time_to_next
         return True, eff, time_to_next
+
+    def __len__(self):
+        return len(self.treat)

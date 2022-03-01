@@ -17,7 +17,9 @@ class Farm:
     treat_id = 1
     def __init__(self, delta_time=0.5, fish_count=200_000, L_0=2000, name=None, initial_start=0,
                  farm_start=0, prod_len=420, fallow=[90], treatments=None,
-                 treatment_type=None,treatment_period = None, treatment_is_food=None, treat_eff=np.array([[]]), fish_count_history=None,
+                 treatment_type=None,treatment_period = None, treatment_is_food=None, treat_eff=np.array([[]]),
+                 treat_automatic_eff = None, treat_automatic_thres = None,
+                 fish_count_history=None,
                  temperature=None, mean_temprature=10,
                  CF_data=None, cleanEff=1, lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02], 
                  surface_ratio_switch=False, biomass_data=None):
@@ -36,6 +38,8 @@ class Farm:
             treatment_period       how long does the effect of the treatment last, if defined List[int] of same lenght as treatments
             treatment_is_food      an list that specefies if the treatments are food based, if defined List[int] of same lenght as treatments
             treat_eff              effientsy of the treatments on the 6 stages of lice (np.array of shape (6, len(treatments)))
+            treat_automatic_thres  Initate a automatic treatment threshold and define level (lice/fish)
+            treat_automatic_eff    Define treatment effeciency in the automatic treatment
             fish_count_history     records of fish count ([List[int], List[int]], the first list is days after initial_start the sekend is fish_count)
             temprature             records of temprature same structure as fish_count_history, if date is outsite of the range of the recurds it will be set to mean_temprature
             mean_temprature        the standard value of the temprature if it is not set
@@ -90,10 +94,12 @@ class Farm:
             self.treat = Treatments_control(treatments, treatment_type, treat_eff, treatment_period, is_food=treatment_is_food)
 
         self.num_treat_tjek = np.alen(treatments)-1
+        self.treat_automatic_thres = treat_automatic_thres
+        self.treat_automatic_eff = treat_automatic_eff
+
         dofy = np.arange(0, 366)
         diff_treat = np.append(dofy[0:int(len(dofy)/2)]*0+20,dofy[int(len(dofy)/2):]*0+80)
         self.diff_treatment = [dofy,diff_treat]
-        self.num_of_treatments = 0
         self.prod_len_tjek = len(self.prod_len)
         self.done = False
         self.W0 = 7 # maximum kg av laksinum
@@ -149,6 +155,8 @@ class Farm:
         self.cleaner_death = 0
         self.cleaner_death_ratio = 1
         self.time_to_next_treat = 0
+
+        self.treat_counter = 0
 
     def update_temp(self):
         self.temp = self.Temp_update(self.time)
@@ -237,10 +245,20 @@ class Farm:
         if self.fish_count == 0:
             self.reset_lice()
 
+        if self.treat_automatic_thres:
+            if np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres:
+                #make_treat = self.treat.apply_Treat(self.time, self.delta_time)
+                #if make_treat[0]:
+                #print(self.treat_counter)
+                self.treatments(self.treat_automatic_eff)
+                self.treat_counter += 1
+            #print(self.treat_counter,self.name)
+
+
         if self.time_to_next_treat< self.delta_time:
             make_treat = self.treat.apply_Treat(self.time, self.delta_time)
             if make_treat[0]:
-                self.avlusing(make_treat[1])
+                self.treatments(make_treat[1])
             self.time_to_next_treat = make_treat[2]
         else:
             self.time_to_next_treat -= self.delta_time
@@ -252,7 +270,7 @@ class Farm:
         else:
             self.get_fordeiling(calculate=True)
 
-    def avlusing(self, treat_eff):
+    def treatments(self, treat_eff):
         '''
         apply a treatment to all the lice
         params : treat_eff is a list (of lenght 6) off big proportion of the lice survive in
