@@ -151,6 +151,7 @@ class Farm:
                 bounds_error = False,
                 fill_value = 0
             )
+            self.max_fish_biomass = np.max(biomass_data[1]*0.001)
         self.surface_ratio_k = surface_ratio_k
         #  TODO if the controll of this is put into Farm watch out for the done flag
         self.initial_start = initial_start
