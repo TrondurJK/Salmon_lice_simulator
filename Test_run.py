@@ -88,7 +88,8 @@ Farm(
      initial_start=inital_start,
      cleanEff =0.3,
      lice_mortality=[0.01,0.01,0.02,0.02,0.02,0.02],
-     surface_ratio_switch=0,
+     surface_ratio_switch=0, # 0 = not used, 1 = constant receiving, 2 = functional response II, 3 = dependant on bio mass
+     surface_ratio_k=0.15,
      treatment_period = 10
     )
 for index,farm_id in enumerate(farm_names)

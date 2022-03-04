@@ -22,7 +22,7 @@ class Farm:
                  fish_count_history=None,
                  temperature=None, mean_temprature=10,
                  CF_data=None, cleanEff=1, lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02], 
-                 surface_ratio_switch=False, biomass_data=None):
+                 surface_ratio_switch=False,surface_ratio_k=0.15, biomass_data=None):
         '''
         :params:
             delta_time             Time step
@@ -46,7 +46,8 @@ class Farm:
             CF_data                records of Cleaner fish same structure as fish_count_history
             cleanEff               the effinsy of the cleaner fish
             lice_mortality         mortalety of the 6 stages of lice (no diffrense between male and female)
-            surface_ratio_switch   boolian if we shall use surface_ratio for lice attacment (Experimental feature)
+            surface_ratio_switch   boolian if we shall use surface_ratio for lice attacment (Experimental feature): 0 = not used, 1 = constant receiving, 2 = functional response II, 3 = dependant on bio mass
+            surface_ratio_k        A konstant for funtional respones type II surface ratio area
             biomass_data           records of biomass fish same structure as fish_count_history (Experimental feature)
 
         '''
@@ -150,6 +151,7 @@ class Farm:
                 bounds_error = False,
                 fill_value = 0
             )
+        self.surface_ratio_k = surface_ratio_k
         #  TODO if the controll of this is put into Farm watch out for the done flag
         self.initial_start = initial_start
         self.cleaner_death = 0
@@ -190,8 +192,15 @@ class Farm:
         #  TODO this is only used in update
         #  TODO we shoud calculate this if nessosery
         #  ratio between surface area between  nógvur fiskur er deyður relatift
-        if self.surface_ratio_switch:
+        if self.surface_ratio_switch==3:
             self.surface_ratio = self._get_surface_ratio()
+        elif self.surface_ratio_switch==2:
+            x_max = (self.biomass_update(self.time) * self.fish_count) / self.max_fish_biomass
+            a = 100
+            FR_typeII = (x_max * a) / (1 + x_max * a) + 0.01
+            self.surface_ratio = self.surface_ratio_k * FR_typeII
+        elif self.surface_ratio_switch == 1:
+            self.surface_ratio = self.surface_ratio_k
         else:
             self.surface_ratio = 1
 
@@ -208,7 +217,11 @@ class Farm:
             if self.CF_data is not None:
                 self.updateCF()
 
-            smitta = (self.L_0 + attached)*self.surface_ratio
+            if self.surface_ratio_switch:
+                smitta = (self.L_0 + attached)*self.surface_ratio
+            else:
+                smitta = self.L_0 + attached
+
 
             #  update young female
             self.update_lice(
