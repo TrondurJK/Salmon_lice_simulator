@@ -261,12 +261,9 @@ class Farm:
 
         if self.treat_automatic_thres:
             if np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres:
-                #make_treat = self.treat.apply_Treat(self.time, self.delta_time)
-                #if make_treat[0]:
-                #print(self.treat_counter)
+
                 self.treatments(self.treat_automatic_eff)
                 self.treat_counter += 1
-            #print(self.treat_counter,self.name)
 
 
         if self.time_to_next_treat< self.delta_time:

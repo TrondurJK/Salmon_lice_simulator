@@ -35,7 +35,6 @@ class System:
         smittarar = []
 
         for farm in self.farms:
-
             farm.update_temp() # koyrir farm.update_temp fyri at fáa fatur á aktuella temperaturinum og dayof year
 
             if np.isnan(farm.get_fordeiling()[4]) or farm.fish_count == 0:
@@ -59,7 +58,6 @@ class System:
             attached_list.append(np.sum(a*b))
 
             # frá farm, til farm, dagar síðani sim byrjaði, delay
-
 
         for farm, attached in zip(self.farms, attached_list):
            farm.update(attached)

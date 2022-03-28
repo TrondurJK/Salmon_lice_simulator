@@ -42,7 +42,7 @@ def run_sim(delta_time,inital_start, stop_time, system):
                 enumerate(zip(farms, stages_f_list, stages_m_list, indexis, fish_count_save_list,temp_save_list, clean_fish_save_list,attached_save_list,treat_counter_save_list)):
             Ch1_f, Ch2_f, Pa1_f, Pa2_f, A_f, AG_f,Ch1_m, Ch2_m, Pa1_m, Pa2_m, A_m = [x / max(1, farm.fish_count) for x in farm.get_fordeiling()]
 
-            index.append(farm.time)
+            index.append(t)
             stages_f[0].append(Ch1_f)
             stages_f[1].append(Ch2_f)
             stages_f[2].append(Pa1_f)
