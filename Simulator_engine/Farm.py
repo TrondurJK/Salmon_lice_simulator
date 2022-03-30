@@ -71,8 +71,17 @@ class Farm:
                                         lice_mortality
                                     )
                                    }
+        if isinstance(L_0, Number):
+            self.L_0 = lambda x: L_0
+        else:
+            self.L_0 = interp1d(
+                x = L_0[0], #
+                y = L_0[1], #
+                bounds_error = False,
+                fill_value = 0
+            )
 
-        self.L_0 = L_0
+
         # Hvissi einki navn er sett so gerða vit eitt
         if name == None:
             self.name = 'farm_%s' % self.__class__.count
@@ -208,7 +217,7 @@ class Farm:
             if self.CF_data is not None:
                 self.updateCF()
 
-            smitta = (self.L_0 + attached)*self.surface_ratio
+            smitta = (self.L_0(self.time) + attached)*self.surface_ratio
 
             #  update young female
             self.update_lice(
@@ -247,12 +256,8 @@ class Farm:
 
         if self.treat_automatic_thres:
             if np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres:
-                #make_treat = self.treat.apply_Treat(self.time, self.delta_time)
-                #if make_treat[0]:
-                #print(self.treat_counter)
                 self.treatments(self.treat_automatic_eff)
                 self.treat_counter += 1
-            #print(self.treat_counter,self.name)
 
 
         if self.time_to_next_treat< self.delta_time:
@@ -293,7 +298,7 @@ class Farm:
         :params:
         calculate       skal man brúka tíð sístu frodeilingina ella skal hettar roknast
         '''
-        #print(calculate,'calcutale',self.time)
+
         if calculate:
             Ch1_f, Ch2_f, Pa1_f, Pa2_f, Adult_f,Adult_gravid_f, Ch1_m, Ch2_m, Pa1_m, Pa2_m, Adult_m = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             # Chalimus 1, Chalimus 2, Pre-Adult 1, Pre-Adult 2, Adult
@@ -331,8 +336,8 @@ class Farm:
             Volumen_grid = 3456000 #160*3*160*3*15
             A_farm  = np.sqrt(Volumen_farm / 15)*np.sqrt(Volumen_farm / 15)
             A_grid = 230400 #160*3*160*3
-            surface_grid = np.sqrt(Volumen_grid / 15)#4 * 15 * np.sqrt(Volumen_grid / 15) #+ 160*3*2
-            surface_farm = np.sqrt(Volumen_farm / 15)#4 * 15 * np.sqrt(Volumen_farm / 15) #+ (Volumen_farm / 10)
+            surface_grid = np.sqrt(Volumen_grid / 15)
+            surface_farm = np.sqrt(Volumen_farm / 15)
             return surface_farm/surface_grid
 
     def __repr__(self):
