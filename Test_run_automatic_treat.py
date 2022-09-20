@@ -6,7 +6,8 @@ from Simulator_engine.System import System
 from Simulator_engine.run_sim import init_run_sim
 from Simulator_engine.Treatments import Treatments_control
 import time
-
+from matplotlib import dates
+import pandas as pd
 
 #========= Farms of interest ===============
 farm_names =['Farm_1','Farm_2','Farm_3','Farm_4']
@@ -82,6 +83,13 @@ temp = np.sin(date / (365 / (np.pi * 2))+450) * 2 + 8.5
 plt.plot(date,temp)
 #plt.show()
 temperature = [date, temp]
+#============ different treatment thresholds depending on day of year  ========
+date_day_of_year = pd.to_datetime(dates.num2date(date)).dayofyear
+treat_automatic_thres =[date,np.zeros(len(date))+0.5,date_day_of_year]
+#=================== do a 0.2 AF/fish treatment threshold form may to 1 august =====================
+treat_automatic_thres[1][np.logical_and(treat_automatic_thres[2]>121, treat_automatic_thres[2]<121+90)]=0.2
+
+treat_automatic_thres = treat_automatic_thres[0:2]
 
 farms = [
 Farm(
@@ -95,7 +103,7 @@ Farm(
      treatments = treat_date[index],                              # Inputs the dates treatments are preformed
      treatment_type = treatment_type[index],                                              # Inputs type of treatments
      treat_eff=np.array(Treatment_array[index]),
-     treat_automatic_thres = 0.8,
+     treat_automatic_thres = treat_automatic_thres,
      treat_automatic_eff = [0.1,0.1,0.1,0.1,0.1,0.1],
      fish_count_history = [np.arange(0,3000), np.arange(0,3000)*0+500_000],   # date, number of fish here set to 500_000 fish
      temperature = temperature,
