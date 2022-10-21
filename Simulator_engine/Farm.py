@@ -103,7 +103,7 @@ class Farm:
         else:
             self.treat = Treatments_control(treatments, treatment_type, treat_eff, treatment_period, is_food=treatment_is_food)
 
-        self.num_treat_tjek = np.alen(treatments)-1
+        self.num_treat_tjek = len(treatments)-1
         self.treat_automatic_thres = treat_automatic_thres
         self.treat_automatic_eff = treat_automatic_eff
 

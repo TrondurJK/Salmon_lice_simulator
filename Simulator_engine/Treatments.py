@@ -66,7 +66,7 @@ class Treatments_control:
         self.NumTreat = 0
         N = len(treatments)
         self.N = N
-        self.num_treat_tjek = np.alen(treatments)
+        self.num_treat_tjek = len(treatments)
 
         treatments = list(treatments)
 
