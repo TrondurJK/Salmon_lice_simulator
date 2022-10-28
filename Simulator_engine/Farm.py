@@ -268,7 +268,7 @@ class Farm:
             self.reset_lice()
 
         if self.treat_automatic_thres:
-            if np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres:
+            if self.fish_count and np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres:
 
                 self.treatments(self.treat_automatic_eff)
                 self.treat_automatic_time.append(self.time)
