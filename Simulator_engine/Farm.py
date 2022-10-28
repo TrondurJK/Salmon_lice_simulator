@@ -105,7 +105,10 @@ class Farm:
 
         self.num_treat_tjek = len(treatments)-1
         self.treat_automatic_thres = treat_automatic_thres
-        self.treat_automatic_eff = treat_automatic_eff
+        if treat_automatic_thres:
+            self.treat_automatic_eff = treat_automatic_eff
+            # A list to save the time of the automatic treatment
+            self.treat_automatic_time = []
 
         dofy = np.arange(0, 366)
         diff_treat = np.append(dofy[0:int(len(dofy)/2)]*0+20,dofy[int(len(dofy)/2):]*0+80)
@@ -268,6 +271,7 @@ class Farm:
             if np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres:
 
                 self.treatments(self.treat_automatic_eff)
+                self.treat_automatic_time.append(self.time)
                 self.treat_counter += 1
 
 
