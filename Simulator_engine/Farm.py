@@ -94,7 +94,7 @@ class Farm:
         #  make it so that if fallow is a number the code does not break
         self.fallow = fallow
         self.prod_time = -farm_start
-        self.__fordeiling__ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.__fordeiling__ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.prod_cyc = 0
         self.treatment = treatments
 
@@ -138,6 +138,7 @@ class Farm:
             )
         else:
             self.Temp_update = lambda x: mean_temprature
+        self.update_temp()
 
         if CF_data is not None:
             self.cleaner_count_update = interp1d(
