@@ -126,6 +126,7 @@ class Farm:
                 bounds_error = False,
                 fill_value = 0
             )
+            self.fish_count = self.fish_count_update(self.time)
         else:
             self.fish_count_update = lambda x: fish_count
 
