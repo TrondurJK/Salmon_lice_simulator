@@ -92,7 +92,7 @@ class Farm:
         #  make it so that if fallow is a number the code does not break
         self.fallow = fallow
         self.prod_time = -farm_start
-        self.__fordeiling__ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.__fordeiling__ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.prod_cyc = 0
         self.treatment = treatments
 
@@ -136,6 +136,7 @@ class Farm:
                 bounds_error = False,
                 fill_value = 0
             )
+            self.fish_count = self.fish_count_update(self.time)
         else:
             self.fish_count_update = lambda x: fish_count
 
@@ -148,6 +149,7 @@ class Farm:
             )
         else:
             self.Temp_update = lambda x: mean_temprature
+        self.update_temp()
 
         if CF_data is not None:
             self.cleaner_count_update = interp1d(
@@ -279,9 +281,10 @@ class Farm:
 
         if self.treat_automatic_thres:
 
-            if np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres(self.time):
+            if self.fish_count and np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres(self.time):
 
                 self.treatments(self.treat_automatic_eff)
+                self.treat_automatic_time.append(self.time)
                 self.treat_counter += 1
 
 
