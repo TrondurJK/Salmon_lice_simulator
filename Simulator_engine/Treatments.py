@@ -187,12 +187,13 @@ class Treatments_control:
 
         time_to_next = np.inf if self.done else self.current_treat.time - time
         for key in list(self.food_dict):
-            eff *= self.food_dict[key].eff
-            self.food_dict[key].time -= dt
 
-            if self.food_dict[key].time <= 0:
+            if self.food_dict[key].time <= dt:
+                eff *= self.food_dict[key].eff**(self.food_dict[key].time/dt)
                 self.food_dict.pop(key)
             else:
+                eff *= self.food_dict[key].eff
+                self.food_dict[key].time -= dt
                 time_to_next = 0
             no_treat = False
 
