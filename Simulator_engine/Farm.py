@@ -6,8 +6,6 @@ from .Treatments import Treatments_control
 
 import numpy as np
 from scipy.interpolate import interp1d
-import pandas as pd
-from matplotlib import dates
 
 class Farm:
     '''
@@ -106,11 +104,23 @@ class Farm:
             self.treat = Treatments_control(treatments, treatment_type, treat_eff, treatment_period, is_food=treatment_is_food)
 
         self.num_treat_tjek = len(treatments)-1
-        self.treat_automatic_thres = treat_automatic_thres
-        if treat_automatic_thres:
+
+        if treat_automatic_thres is not None:
+            if isinstance(treat_automatic_thres, Number):
+                self.treat_automatic_thres = lambda x: treat_automatic_thres
+
+            else:
+                self.treat_automatic_thres = interp1d(
+                    x = treat_automatic_thres[0], #
+                    y = treat_automatic_thres[1], #
+                    bounds_error = False,
+                    fill_value = 0
+                )
             self.treat_automatic_eff = treat_automatic_eff
-            # A list to save the time of the automatic treatment
-            self.treat_automatic_time = []
+        else:
+            self.treat_automatic_thres = lambda x: np.inf
+            self.treat_automatic_eff = [1,1,1,1,1,1]
+
 
         dofy = np.arange(0, 366)
         diff_treat = np.append(dofy[0:int(len(dofy)/2)]*0+20,dofy[int(len(dofy)/2):]*0+80)
@@ -273,7 +283,8 @@ class Farm:
             self.reset_lice()
 
         if self.treat_automatic_thres:
-            if self.fish_count and np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres:
+
+            if self.fish_count and np.sum(self.get_fordeiling()[4:6])/self.fish_count>self.treat_automatic_thres(self.time):
 
                 self.treatments(self.treat_automatic_eff)
                 self.treat_automatic_time.append(self.time)
