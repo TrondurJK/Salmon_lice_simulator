@@ -395,9 +395,6 @@ class Farm:
 
             self.cleaner_death_ratio = max([not_below_CF_min, (1 - self.cleaner_death / sum_mobile_lice)])
 
-        else:
-            self.cleaner_death_ratio = max([0.001, (1 - self.cleaner_death / sum_mobile_lice)])
-
     def update_lice(
         self,
         lice_young,
