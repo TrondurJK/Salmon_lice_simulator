@@ -21,7 +21,7 @@ class Farm:
                  treat_automatic_eff = None, treat_automatic_thres = None,
                  fish_count_history=None,
                  temperature=None, mean_temprature=10,
-                 CF_data=None, cleanEff=1, CF_lice_min = 0.4,
+                 CF_data=None, cleanEff=1, CF_lice_min = 0.0,
                  lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02],
                  surface_ratio_switch=False,surface_ratio_k=0.15, biomass_data=None):
         '''
@@ -382,37 +382,22 @@ class Farm:
                 np.sum(self.get_fordeiling()[8:])
             ]
         )
-        print(sum_mobile_lice, self.CF_lice_min, sum_mobile_lice / self.fish_count, self.cleaner_death,(sum_mobile_lice/self.fish_count) >= self.CF_lice_min)
         if self.cleaner_death <= 0 :
             self.cleaner_death_ratio = 1
-            print("nu riggar CF ikki")
+
         elif  np.isnan(self.cleaner_death):
             self.cleaner_death_ratio = 1
-            print("nu riggar CF ikki")
-        elif np.sum(self.get_fordeiling()[4:6])/self.fish_count<= self.CF_lice_min:# (sum_mobile_lice/self.fish_count) <= self.CF_lice_min:
-            self.cleaner_death_ratio = 1
-            print("Her er CF heldur ikki rigga")
-        elif np.sum(self.get_fordeiling()[4:6])/self.fish_count>= self.CF_lice_min: #(sum_mobile_lice/self.fish_count) >= self.CF_lice_min:
-            #self.cleaner_death_ratio = 1
-            not_below_CF_min =(self.CF_lice_min / (sum_mobile_lice / self.fish_count))
 
+        elif np.sum(self.get_fordeiling()[4:6])/self.fish_count<= self.CF_lice_min:
+            self.cleaner_death_ratio = 1
+        elif np.sum(self.get_fordeiling()[4:6])/self.fish_count> self.CF_lice_min:
             not_below_CF_min = (self.CF_lice_min / (np.sum(self.get_fordeiling()[4:6]) / self.fish_count))
 
             self.cleaner_death_ratio = max([not_below_CF_min, (1 - self.cleaner_death / sum_mobile_lice)])
-            #self.cleaner_death_ratio = max([0.001, (1-self.cleaner_death/sum_mobile_lice)])
-            print("nu riggar CF gott")
-            print(not_below_CF_min, (1 - self.cleaner_death / sum_mobile_lice),np.sum(self.get_fordeiling()[4:6])/self.fish_count, "wtf")
-            print(sum_mobile_lice, self.CF_lice_min, sum_mobile_lice / self.fish_count, self.cleaner_death)
 
-            #not_below_CF_min = self.CF_lice_min / (sum_mobile_lice / self.fish_count)
-            #self.cleaner_death_ratio = max([not_below_CF_min, (1 - self.cleaner_death / sum_mobile_lice)])
-            #self.cleaner_death_ratio = max([0.001, (1-self.cleaner_death/sum_mobile_lice)])
-            #print("nu riggar CF")
-            #print(not_below_CF_min, (1 - self.cleaner_death / sum_mobile_lice), "wtf")
-            #print(sum_mobile_lice, self.CF_lice_min, sum_mobile_lice / self.fish_count, self.cleaner_death)
         else:
-            print("Nær er hettar galdandi?")
             self.cleaner_death_ratio = max([0.001, (1 - self.cleaner_death / sum_mobile_lice)])
+
     def update_lice(
         self,
         lice_young,
