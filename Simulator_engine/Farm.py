@@ -19,7 +19,8 @@ class Farm:
                  treat_automatic_eff = None, treat_automatic_thres = None,
                  fish_count_history=None,
                  temperature=None, mean_temprature=10,
-                 CF_data=None, cleanEff=1, lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02], 
+                 CF_data=None, cleanEff=1, CF_lice_min = 0.0,
+                 lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02],
                  surface_ratio_switch=False,surface_ratio_k=0.15, biomass_data=None):
         '''
         :params:
@@ -47,6 +48,7 @@ class Farm:
             surface_ratio_switch   boolian if we shall use surface_ratio for lice attacment (Experimental feature): 0 = not used, 1 = constant receiving, 2 = functional response II, 3 = dependant on bio mass
             surface_ratio_k        A konstant for funtional respones type II surface ratio area
             biomass_data           records of biomass fish same structure as fish_count_history (Experimental feature)
+            CF_lice_min            the minimum level of moblice lice in order for clenar fish to work
 
         '''
         #  TODO figure out temprature
@@ -181,6 +183,7 @@ class Farm:
         self.initial_start = initial_start
         self.cleaner_death = 0
         self.cleaner_death_ratio = 1
+        self.CF_lice_min = CF_lice_min # the minimum amount moblie lice for cleaner fish to mork
         self.time_to_next_treat = 0
 
         self.treat_counter = 0
@@ -378,11 +381,11 @@ class Farm:
         return self.W
 
     def updateCF(self):
-        #  if there is no data for cleaner fish dont update it
+        #  if there is no data for cleaner fish don't update it
         self.cleaner_fish = self.cleaner_count_update(self.time)
 
         #  How many lice do cleaner fish eat in one delta time step (0.05 per day)
-        self.cleaner_death = self.cleaner_fish * self.cleanEff *self.delta_time 
+        self.cleaner_death = self.cleaner_fish * self.cleanEff * self.delta_time
 
         sum_mobile_lice = np.sum(
             [
@@ -390,12 +393,19 @@ class Farm:
                 np.sum(self.get_fordeiling()[8:])
             ]
         )
-
-        if self.cleaner_death <=0 or sum_mobile_lice==0 or np.isnan(self.cleaner_death):
+        if self.cleaner_death <= 0 :
             self.cleaner_death_ratio = 1
-        else:
-            self.cleaner_death_ratio = max([0.001,(1-self.cleaner_death /
-                                                           sum_mobile_lice)])
+
+        elif  np.isnan(self.cleaner_death):
+            self.cleaner_death_ratio = 1
+
+        elif np.sum(self.get_fordeiling()[4:6])/self.fish_count<= self.CF_lice_min:
+            self.cleaner_death_ratio = 1
+        elif np.sum(self.get_fordeiling()[4:6])/self.fish_count> self.CF_lice_min:
+            not_below_CF_min = (self.CF_lice_min / (np.sum(self.get_fordeiling()[4:6]) / self.fish_count))
+
+            self.cleaner_death_ratio = max([not_below_CF_min, (1 - self.cleaner_death / sum_mobile_lice)])
+
     def update_lice(
         self,
         lice_young,
