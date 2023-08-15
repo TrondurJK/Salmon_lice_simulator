@@ -3,65 +3,78 @@ from dataclasses import dataclass
 from typing import List
 from collections.abc import Iterable
 
+
 @dataclass
 class Food_treat:
-    time:float 
-    eff:np.array
+    time: float
+    eff: np.array
+
 
 @dataclass
 class Treatment:
-    '''define a single treatment'''
+    """define a single treatment"""
+
     _type: str
     time: float
     eff: np.array
     isfood: bool = False
     duration: float = 1
 
+
 ANY = Treatment(
-    _type='any',
+    _type="any",
     time=0,
     eff=np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
     isfood=False,
-    duration=1
+    duration=1,
 )
 
 TREAT_DICT = {
-    'Diflubenzuron' : Treatment(
-        _type='Diflubenzuron',
+    "Diflubenzuron": Treatment(
+        _type="Diflubenzuron",
         time=0,
         eff=np.array([0.94, 0.94, 0.94, 0.94, 0.97, 0.97]),
         isfood=False,
-        duration=1),
-    'Slice' : Treatment(
-        _type='Slice',
+        duration=1,
+    ),
+    "Slice": Treatment(
+        _type="Slice",
         time=0,
         eff=np.array([0.94, 0.94, 0.94, 0.94, 0.97, 0.97]),
         isfood=True,
-        duration=40
+        duration=40,
     ),
-    'Pyretroid' : Treatment(
-        _type='Pyretroid',
+    "Pyretroid": Treatment(
+        _type="Pyretroid",
         time=0,
         eff=np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
         isfood=False,
-        duration=1
+        duration=1,
     ),
-    'H2O2' : Treatment(
-        _type='H2O2',
+    "H2O2": Treatment(
+        _type="H2O2",
         time=0,
         eff=np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
         isfood=False,
-        duration=1
+        duration=1,
     ),
-    'any' : ANY
+    "any": ANY,
 }
 
-class Treatments_control:
-    '''
-    A class to manige the treatments in a Farm
-    '''
 
-    def __init__(self, treatments, treatment_type=None, treat_eff:np.array=None, treatment_period=None, is_food=None):
+class Treatments_control:
+    """
+    A class to manige the treatments in a Farm
+    """
+
+    def __init__(
+        self,
+        treatments,
+        treatment_type=None,
+        treat_eff: np.array = None,
+        treatment_period=None,
+        is_food=None,
+    ):
 
         self.NumTreat = 0
         N = len(treatments)
@@ -72,7 +85,7 @@ class Treatments_control:
 
         #  TODO make None values in the list's be set to a default value
         if treatment_type is None:
-            treatment_type = ['any' for _ in range(N)]
+            treatment_type = ["any" for _ in range(N)]
 
         treatment_type = list(treatment_type)
 
@@ -119,15 +132,15 @@ class Treatments_control:
         ):
             treat.append(
                 Treatment(
-                    _type = _type,
-                    time = time,
-                    eff = np.array(eff),
-                    isfood = food,
-                    duration = periode
+                    _type=_type,
+                    time=time,
+                    eff=np.array(eff),
+                    isfood=food,
+                    duration=periode,
                 )
             )
 
-        treat.sort( key = lambda x: x.time)
+        treat.sort(key=lambda x: x.time)
         self.treat = treat
         self.food_dict = {}
 
@@ -137,18 +150,20 @@ class Treatments_control:
         except IndexError:
             self.done = True
 
-        while (not self.done) and (self.current_treat.time < 0 or np.isnan(self.current_treat.time)):
+        while (not self.done) and (
+            self.current_treat.time < 0 or np.isnan(self.current_treat.time)
+        ):
             if self.current_treat.isfood:
-                if self.current_treat.time + self.current_treat.duration>0:
-                    self.food_dict[self.current_treat._type] = \
-                            self.current_treat.time + self.current_treat.duration
+                if self.current_treat.time + self.current_treat.duration > 0:
+                    self.food_dict[self.current_treat._type] = (
+                        self.current_treat.time + self.current_treat.duration
+                    )
             self.NumTreat += 1
             try:
                 self.current_treat = self.treat[self.NumTreat]
             except IndexError:
                 self.done = True
                 break
-
 
     def apply_Treat(self, time, dt):
 
@@ -160,11 +175,9 @@ class Treatments_control:
             if time >= self.current_treat.time:
 
                 if self.current_treat.isfood:
-                    self.food_dict[
-                        self.current_treat._type
-                    ] = Food_treat(
-                        time = self.current_treat.duration,
-                        eff = self.current_treat.eff**dt
+                    self.food_dict[self.current_treat._type] = Food_treat(
+                        time=self.current_treat.duration,
+                        eff=self.current_treat.eff**dt,
                     )
                 else:
                     eff *= self.current_treat.eff
@@ -189,7 +202,7 @@ class Treatments_control:
         for key in list(self.food_dict):
 
             if self.food_dict[key].time <= dt:
-                eff *= self.food_dict[key].eff**(self.food_dict[key].time/dt)
+                eff *= self.food_dict[key].eff ** (self.food_dict[key].time / dt)
                 self.food_dict.pop(key)
             else:
                 eff *= self.food_dict[key].eff
