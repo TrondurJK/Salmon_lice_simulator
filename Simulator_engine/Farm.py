@@ -109,7 +109,7 @@ class Farm:
         else:
             self.name = name
         self.prod_len = prod_len
-        #  TODO there is somthing wrong with fallow # TrondurT er hettar enn ein feilur??
+
         #  make it so that if fallow is a number the code does not break
         self.fallow = fallow
         self.prod_time = -farm_start
@@ -196,7 +196,7 @@ class Farm:
 
         self.cleaner_fish = 0
         #  TODO what to do with cleanEff if there is no use for cleaner fish
-        #self.cleanEff = cleanEff
+
         if cleanEff and isinstance(cleanEff, list):
             if cleanEff_method=="previous":
                 cleanMean = cleanEff[1][-1]
