@@ -19,6 +19,7 @@ def run_sim(delta_time, inital_start, stop_time, system):
     fish_count_save_list = [[] for _ in farms]
     temp_save_list = [[] for _ in farms]
     clean_fish_save_list = [[] for _ in farms]
+    clean_fish_eff_save_list = [[] for _ in farms]
     attached_save_list = [[] for _ in farms]
     treat_counter_save_list = [[] for _ in farms]
 
@@ -39,6 +40,7 @@ def run_sim(delta_time, inital_start, stop_time, system):
             fish_count_save,
             temp_save,
             clean_fish_save,
+            clean_fish_eff_save,
             attached_save,
             treat_counter_save,
         ) in enumerate(
@@ -50,6 +52,7 @@ def run_sim(delta_time, inital_start, stop_time, system):
                 fish_count_save_list,
                 temp_save_list,
                 clean_fish_save_list,
+                clean_fish_eff_save_list,
                 attached_save_list,
                 treat_counter_save_list,
             )
@@ -74,6 +77,7 @@ def run_sim(delta_time, inital_start, stop_time, system):
             fish_count_save.append(farm.fish_count)
             temp_save.append(farm.temp)
             clean_fish_save.append(farm.cleaner_fish)
+            clean_fish_eff_save.append(farm.cf_eff)
             treat_counter_save.append(farm.treat_counter)
 
             unique_id.append(id)
@@ -95,6 +99,7 @@ def run_sim(delta_time, inital_start, stop_time, system):
             "CH_2_m": stages_m_list[id][1],
             "CH_1_m": stages_m_list[id][0],
             "CF": clean_fish_save_list[id],
+            "CF_eff": clean_fish_eff_save_list[id],
             "Ntreatments": treat_counter_save_list[id],
         }
 
