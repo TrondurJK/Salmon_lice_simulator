@@ -130,6 +130,7 @@ class Farm:
 
         self.num_treat_tjek = len(treatments) - 1
 
+        self.treat_automatic_time = []
         if treat_automatic_thres is not None:
             if isinstance(treat_automatic_thres, Number):
                 self.treat_automatic_thres = lambda x: treat_automatic_thres
