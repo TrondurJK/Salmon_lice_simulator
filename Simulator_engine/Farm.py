@@ -37,7 +37,9 @@ class Farm:
         temperature=None,
         mean_temprature=10,
         CF_data=None,
-        cleanEff=1,
+        cleanEff=None,
+        cleanMean = 0.2,
+        cleanEff_method = "Interp",
         CF_lice_min=0.0,
         lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02],
         surface_ratio_switch=False,
@@ -107,7 +109,7 @@ class Farm:
         else:
             self.name = name
         self.prod_len = prod_len
-        #  TODO there is somthing wrong with fallow
+
         #  make it so that if fallow is a number the code does not break
         self.fallow = fallow
         self.prod_time = -farm_start
@@ -172,16 +174,14 @@ class Farm:
 
         if temperature:
             self.Temp_update = interp1d(
-                x=temperature[0],  # remember which is which this should be date of fish
-                y=temperature[
-                    1
-                ],  # remember which is which this should be number of fish
+                x=temperature[0],  # Date
+                y=temperature[1],  # Temperature
                 bounds_error=False,
                 fill_value=mean_temprature,
             )
         else:
             self.Temp_update = lambda x: mean_temprature
-        self.update_temp()
+        self.update_temp() # Update to newest temperature
 
         if CF_data is not None:
             self.cleaner_count_update = interp1d(
@@ -196,7 +196,23 @@ class Farm:
 
         self.cleaner_fish = 0
         #  TODO what to do with cleanEff if there is no use for cleaner fish
-        self.cleanEff = cleanEff
+
+        if cleanEff and isinstance(cleanEff, list):
+            if cleanEff_method=="previous":
+                cleanMean = cleanEff[1][-1]
+
+            self.CleanEff_update = interp1d(
+                x=cleanEff[0],  # Date
+                y=cleanEff[1],  # Cleanerfish effeciency
+                kind = cleanEff_method,
+                bounds_error=False,
+                fill_value=cleanMean,
+            )
+        elif not isinstance(cleanEff, list):
+            self.CleanEff_update = lambda x: cleanEff
+        else:
+            self.CleanEff_update = lambda x: cleanMean
+        self.cleanEff_update()
 
         self.surface_ratio_switch = surface_ratio_switch
         if self.surface_ratio_switch:
@@ -226,6 +242,8 @@ class Farm:
     def update_temp(self):
         self.temp = self.Temp_update(self.time)
 
+    def cleanEff_update(self):
+        self.cf_eff = self.CleanEff_update(self.time)
     def update(self, attached=0):
         """
         Hvat skal henda tá ið man uppdaterar Farmina
@@ -281,6 +299,7 @@ class Farm:
             # ============ clenar fish effect========
             if self.CF_data is not None:
                 self.updateCF()
+                self.cleanEff_update()
 
             smitta = (self.L_0(self.time) + attached) * self.surface_ratio
 
@@ -484,9 +503,9 @@ class Farm:
     def updateCF(self):
         #  if there is no data for cleaner fish don't update it
         self.cleaner_fish = self.cleaner_count_update(self.time)
-
+        self.cleanEff_update()
         #  How many lice do cleaner fish eat in one delta time step (0.05 per day)
-        self.cleaner_death = self.cleaner_fish * self.cleanEff * self.delta_time
+        self.cleaner_death = self.cleaner_fish * self.cf_eff * self.delta_time
 
         sum_mobile_lice = np.sum(
             [np.sum(self.get_fordeiling()[2:6]), np.sum(self.get_fordeiling()[8:])]
