@@ -247,7 +247,7 @@ class Farm:
                 bounds_error=False,
                 fill_value=cleanMean,
             )
-        elif not isinstance(cleanEff, list):
+        elif not isinstance(self.cleanEff, list):
             self.CleanEff_update = lambda x: self.cleanEff
         else:
             self.CleanEff_update = lambda x: self.cleanMean
