@@ -38,8 +38,8 @@ class Farm:
         mean_temprature=10,
         CF_data=None,
         cleanEff=None,
-        cleanMean = 0.2,
-        cleanEff_method = "Interp",
+        cleanMean=0.2,
+        cleanEff_method="Interp",
         CF_lice_min=0.0,
         lice_mortality=[0.01, 0.01, 0.02, 0.02, 0.02, 0.02],
         surface_ratio_switch=False,
@@ -182,7 +182,7 @@ class Farm:
             )
         else:
             self.Temp_update = lambda x: mean_temprature
-        self.update_temp() # Update to newest temperature
+        self.update_temp()  # Update to newest temperature
 
         if CF_data is not None:
             self.cleaner_count_update = interp1d(
@@ -198,21 +198,10 @@ class Farm:
         self.cleaner_fish = 0
         #  TODO what to do with cleanEff if there is no use for cleaner fish
 
-        if cleanEff and isinstance(cleanEff, list):
-            if cleanEff_method=="previous":
-                cleanMean = cleanEff[1][-1]
-
-            self.CleanEff_update = interp1d(
-                x=cleanEff[0],  # Date
-                y=cleanEff[1],  # Cleanerfish effeciency
-                kind = cleanEff_method,
-                bounds_error=False,
-                fill_value=cleanMean,
-            )
-        elif not isinstance(cleanEff, list):
-            self.CleanEff_update = lambda x: cleanEff
-        else:
-            self.CleanEff_update = lambda x: cleanMean
+        self.cleanMean = cleanMean
+        self.cleanEff = cleanEff
+        self.cleanEff_method = cleanEff_method
+        self._make_CleanEff_update()
         self.cleanEff_update()
 
         self.surface_ratio_switch = surface_ratio_switch
@@ -240,11 +229,35 @@ class Farm:
 
         self.treat_counter = 0
 
+    def _make_CleanEff_update(self):
+        if (
+            self.cleanEff
+            and isinstance(self.cleanEff, list)
+            and self.cleanEff != [[], []]
+        ):
+            if self.cleanEff_method == "previous":
+                cleanMean = (self.cleanMean, self.cleanEff[1][-1])
+            else:
+                cleanMean = self.cleanMean
+
+            self.CleanEff_update = interp1d(
+                x=self.cleanEff[0],  # Date
+                y=self.cleanEff[1],  # Cleanerfish effeciency
+                kind=self.cleanEff_method,
+                bounds_error=False,
+                fill_value=cleanMean,
+            )
+        elif not isinstance(cleanEff, list):
+            self.CleanEff_update = lambda x: self.cleanEff
+        else:
+            self.CleanEff_update = lambda x: self.cleanMean
+
     def update_temp(self):
         self.temp = self.Temp_update(self.time)
 
     def cleanEff_update(self):
         self.cf_eff = self.CleanEff_update(self.time)
+
     def update(self, attached=0):
         """
         Hvat skal henda tá ið man uppdaterar Farmina
