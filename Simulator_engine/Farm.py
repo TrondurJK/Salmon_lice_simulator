@@ -232,23 +232,25 @@ class Farm:
     def _make_CleanEff_update(self):
         if (
             self.cleanEff
-            and isinstance(self.cleanEff, list)
             and self.cleanEff != [[], []]
         ):
-            if self.cleanEff_method == "previous":
-                cleanMean = (self.cleanMean, self.cleanEff[1][-1])
-            else:
-                cleanMean = self.cleanMean
 
-            self.CleanEff_update = interp1d(
-                x=self.cleanEff[0],  # Date
-                y=self.cleanEff[1],  # Cleanerfish effeciency
-                kind=self.cleanEff_method,
-                bounds_error=False,
-                fill_value=cleanMean,
-            )
-        elif not isinstance(self.cleanEff, list):
-            self.CleanEff_update = lambda x: self.cleanEff
+            if isinstance(self.cleanEff, list):
+
+                if self.cleanEff_method == "previous":
+                    cleanMean = (self.cleanMean, self.cleanEff[1][-1])
+                else:
+                    cleanMean = self.cleanMean
+
+                self.CleanEff_update = interp1d(
+                    x=self.cleanEff[0],  # Date
+                    y=self.cleanEff[1],  # Cleanerfish effeciency
+                    kind=self.cleanEff_method,
+                    bounds_error=False,
+                    fill_value=cleanMean,
+                )
+            else:
+                self.CleanEff_update = lambda x: self.cleanEff
         else:
             self.CleanEff_update = lambda x: self.cleanMean
 
