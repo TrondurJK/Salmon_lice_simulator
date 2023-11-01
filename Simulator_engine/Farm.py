@@ -518,7 +518,7 @@ class Farm:
 
     def updateCF(self):
         #  if there is no data for cleaner fish don't update it
-        if self.fish_count == 0
+        if self.fish_count == 0:
             PAA_lice = 0
         else:
             PAA_lice = np.sum(self.get_fordeiling()[4:6]) / self.fish_count
