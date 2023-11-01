@@ -518,6 +518,10 @@ class Farm:
 
     def updateCF(self):
         #  if there is no data for cleaner fish don't update it
+        if self.fish_count == 0
+            PAA_lice = 0
+        else:
+            PAA_lice = np.sum(self.get_fordeiling()[4:6]) / self.fish_count
         self.cleaner_fish = self.cleaner_count_update(self.time)
         self.cleanEff_update()
         #  How many lice do cleaner fish eat in one delta time step (0.05 per day)
@@ -532,11 +536,11 @@ class Farm:
         elif np.isnan(self.cleaner_death):
             self.cleaner_death_ratio = 1
 
-        elif np.sum(self.get_fordeiling()[4:6]) / self.fish_count <= self.CF_lice_min:
+        elif PAA_lice <= self.CF_lice_min:
             self.cleaner_death_ratio = 1
-        elif np.sum(self.get_fordeiling()[4:6]) / self.fish_count > self.CF_lice_min:
+        elif PAA_lice > self.CF_lice_min:
             not_below_CF_min = self.CF_lice_min / (
-                np.sum(self.get_fordeiling()[4:6]) / self.fish_count
+                PAA_lice
             )
 
             self.cleaner_death_ratio = max(
