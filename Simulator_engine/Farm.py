@@ -536,11 +536,11 @@ class Farm:
         elif np.isnan(self.cleaner_death):
             self.cleaner_death_ratio = 1
 
-        elif PAA_lice / self.fish_count <= self.CF_lice_min:
+        elif PAA_lice <= self.CF_lice_min:
             self.cleaner_death_ratio = 1
-        elif PAA_lice / self.fish_count > self.CF_lice_min:
+        elif PAA_lice > self.CF_lice_min:
             not_below_CF_min = self.CF_lice_min / (
-                PAA_lice / self.fish_count
+                PAA_lice
             )
 
             self.cleaner_death_ratio = max(
